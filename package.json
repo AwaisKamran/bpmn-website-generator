@@ -1,0 +1,19 @@
+{
+  "name": "bpmn-parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Awais Kamran",
+  "license": "ISC",
+  "dependencies": {
+    "bpmn-moddle": "^8.0.0",
+    "nodemon": "^2.0.20"
+  },
+  "devDependencies": {
+    "@types/bpmn-moddle": "^5.1.6"
+  }
+}
