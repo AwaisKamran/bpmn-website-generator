@@ -1,55 +1,15 @@
-const SimpleBpmnModdle = require("bpmn-moddle/dist/index.cjs");
-const fileReader = require("./utility/file-reader.js");
-const posTagger = require("wink-pos-tagger");
-var stem = require("wink-porter2-stemmer");
-const classifier = require("./utility/natural-language-proessing/naive-bayes-classifier.js");
-const {
-  TASK,
-  PROCESS,
-  ROOT,
-  PATH_TO_BPMN_FILE,
-} = require("./utility/constants");
+const bodyParser = require("body-parser");
+const express = require("express");
+const routes = require("./routes");
 
-function fromFile(file, root, opts) {
-  var contents = fileReader(file);
-  return read(contents, root, opts);
-}
+const app = express();
 
-function read(xml, root, opts) {
-  return moddle.fromXML(xml, root, opts);
-}
+app.use("/", routes);
+app.set("view engine", "ejs");
 
-function createModdle(additionalPackages, options) {
-  return new SimpleBpmnModdle(additionalPackages, options);
-}
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-const moddle = createModdle();
-const tagger = posTagger();
-
-fromFile(PATH_TO_BPMN_FILE, ROOT).then((response) => {
-  const { rootElement } = response;
-  const { rootElements: components } = rootElement;
-  const [initialProcesses] = filterProcesses(components, PROCESS);
-  const flowElements = initialProcesses.flowElements;
-  const filteredFlowElements = filterProcesses(flowElements, TASK);
-  const taskNames = filteredFlowElements.map((item) => item.name);
-
-  const pageClassification = [];
-  let taggedSentences = [];
-
-  taggedSentences = taskNames.map((item) => {
-    pageClassification.push(classifier.predict(item));
-    const newItem = item
-      .split(" ")
-      .map((item) => stem(item))
-      .join(" ");
-
-    return tagger.tagSentence(newItem);
-  });
-
-  console.log(taggedSentences);
+app.listen(8000, function () {
+  console.log("Listening to Port 8000");
 });
-
-function filterProcesses(data, type) {
-  return data.filter((item) => item.$type === type);
-}

@@ -5,15 +5,18 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
+    "seed": "nodemon seed.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Awais Kamran",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.20.1",
     "bpmn-moddle": "^8.0.0",
     "compromise": "^14.7.1",
     "ejs": "^3.1.8",
     "express": "^4.18.2",
+    "express-validator": "^6.14.2",
     "lodash": "^4.17.21",
     "nodemon": "^2.0.20",
     "wink-eng-lite-web-model": "^1.4.3",
