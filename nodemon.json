@@ -1,1 +1,1 @@
-{ "ignore": ["routes/*"] }
+{ "ignore": ["routes/*", "views/pages/*"] }

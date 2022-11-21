@@ -95,9 +95,7 @@ function createRouteFiles(data) {
 
   for (let i = 0; i < data.length; i++) {
     writeStream.write(`
-      app.${data[i].routeType === "listing" ? "get" : "post"}('/${
-      data[i].route
-    }', function(req, res) {
+      router.get('/${data[i].route}', function(req, res) {
         res.render('pages/${data[i].route}');
       });
     `);
@@ -112,11 +110,43 @@ function createRouteFiles(data) {
 
 function createPages(data) {
   for (let i = 0; i < data.length; i++) {
-    console.log(data[i].route);
     fetchDataPropertiesByOntologyClassName(
       capitalizeFirstLetter(data[i].tags[0])
     ).then((res) => {
-      console.log(res);
+      let template = "";
+      for (let i = 0; i < res.length; i++) {
+        template += `<input class="form-control" type="text" placeholder='${res[i]}' /><br/>`;
+      }
+
+      const writeStream = fs.createWriteStream(
+        `views/pages/${data[i].route}.ejs`
+      );
+
+      const page = `
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <%- include('../partials/head'); %>
+          </head>
+
+          <body class="container">
+            <header>
+              <%- include('../partials/header'); %>
+            </header>
+            <main>
+              <div class="jumbotron">
+                ${template}
+              </div>
+            </main>
+            <footer>
+              <%- include('../partials/footer'); %>
+            </footer>
+          </body>
+        </html>
+      `;
+
+      writeStream.write(page);
+      writeStream.end();
     });
   }
 }

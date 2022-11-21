@@ -1,10 +1,6 @@
 const bodyParser = require("body-parser");
 const express = require("express");
 const routes = require("./routes");
-const {
-  fetchClasses,
-  fetchDataPropertiesByOntologyClassName,
-} = require("./utility/sparql");
 
 const app = express();
 
