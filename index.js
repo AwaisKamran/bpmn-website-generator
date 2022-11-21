@@ -1,6 +1,10 @@
 const bodyParser = require("body-parser");
 const express = require("express");
 const routes = require("./routes");
+const {
+  fetchClasses,
+  fetchDataPropertiesByOntologyClassName,
+} = require("./utility/sparql");
 
 const app = express();
 
@@ -11,5 +15,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.listen(8000, function () {
+  fetchClasses().then((res) => {
+    console.log(res);
+    fetchDataPropertiesByOntologyClassName("Product").then((res) =>
+      console.log(res)
+    );
+  });
   console.log("Listening to Port 8000");
 });
