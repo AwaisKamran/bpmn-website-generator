@@ -11,9 +11,14 @@ const {
   ROOT,
   PATH_TO_BPMN_FILE,
 } = require("./utility/constants");
+const {
+  fetchClasses,
+  fetchDataPropertiesByOntologyClassName,
+} = require("./utility/sparql");
 
 let pageClassification = [];
 let routeTokens = [];
+let ONTOLOGY_CLASSES = [];
 
 function fromFile(file, root, opts) {
   var contents = fileReader(file);
@@ -31,25 +36,29 @@ function createModdle(additionalPackages, options) {
 const moddle = createModdle();
 const tagger = posTagger();
 
-fromFile(PATH_TO_BPMN_FILE, ROOT).then((response) => {
-  const { rootElement } = response;
-  const { rootElements: components } = rootElement;
-  const [initialProcesses] = filterProcesses(components, PROCESS);
-  const flowElements = initialProcesses.flowElements;
-  const filteredFlowElements = filterProcesses(flowElements, TASK);
-  const taskNames = filteredFlowElements.map((item) => item.name);
+fetchClasses().then((res) => {
+  ONTOLOGY_CLASSES = res;
 
-  let taggedSentences = [];
+  fromFile(PATH_TO_BPMN_FILE, ROOT).then((response) => {
+    const { rootElement } = response;
+    const { rootElements: components } = rootElement;
+    const [initialProcesses] = filterProcesses(components, PROCESS);
+    const flowElements = initialProcesses.flowElements;
+    const filteredFlowElements = filterProcesses(flowElements, TASK);
+    const taskNames = filteredFlowElements.map((item) => item.name);
 
-  taggedSentences = taskNames.map((item) => {
-    pageClassification.push(classifier.predict(item));
-    routeTokens.push(item.split(" ").join(""));
-    return tagger.tagSentence(item.toLowerCase());
+    let taggedSentences = [];
+
+    taggedSentences = taskNames.map((item) => {
+      pageClassification.push(classifier.predict(item));
+      routeTokens.push(item.split(" ").join(""));
+      return tagger.tagSentence(item.toLowerCase());
+    });
+
+    console.log(taggedSentences);
+    const results = consolidateResults(taggedSentences);
+    createRouteFiles(results);
   });
-
-  console.log(taggedSentences);
-  const results = consolidateResults(taggedSentences);
-  createRouteFiles(results);
 });
 
 function filterProcesses(data, type) {
@@ -98,4 +107,20 @@ function createRouteFiles(data) {
     module.exports = router;
   `);
   writeStream.end();
+  createPages(data);
+}
+
+function createPages(data) {
+  for (let i = 0; i < data.length; i++) {
+    console.log(data[i].route);
+    fetchDataPropertiesByOntologyClassName(
+      capitalizeFirstLetter(data[i].tags[0])
+    ).then((res) => {
+      console.log(res);
+    });
+  }
+}
+
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
 }
