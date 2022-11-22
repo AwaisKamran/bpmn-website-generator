@@ -118,6 +118,8 @@ function createPages(data) {
         template += `<input class="form-control" type="text" placeholder='${res[i]}' /><br/>`;
       }
 
+      template += `<button type="button" class="form-control btn btn-primary">Submit</button>`;
+
       const writeStream = fs.createWriteStream(
         `views/pages/${data[i].route}.ejs`
       );
