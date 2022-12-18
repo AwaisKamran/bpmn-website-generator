@@ -35,6 +35,8 @@ classifier.learn("Enter Payment Details", "Form");
 classifier.learn("Enter Shipping Details", "Form");
 classifier.learn("Enter Personal Details", "Form");
 classifier.learn("Enter Checkout Details", "Form");
+classifier.learn("Add Academic Year", "Form");
+classifier.learn("Select Academic Term", "Form");
 classifier.learn("Enter Product Specifications", "Form");
 classifier.consolidate();
 
