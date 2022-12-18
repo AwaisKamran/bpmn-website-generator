@@ -15,6 +15,7 @@ const {
   fetchClasses,
   fetchDataPropertiesByOntologyClassName,
   fetchIndividualsByOntologyClassName,
+  fetchIndividualsPropertiesByOntologyClassName,
 } = require("./utility/sparql");
 const chalk = require("chalk");
 
@@ -92,8 +93,7 @@ function consolidateResults(data) {
         data[i][j].pos == "NN" ||
         data[i][j].pos == "NNS" ||
         data[i][j].pos == "JJ" ||
-        process.env.MULTI_PAGE === "false" ||
-        data[i][j].pos == "VBG"
+        (process.env.MULTI_PAGE === "false" && data[i][j].pos == "VBG")
       ) {
         dataResult.tags.push(stem(data[i][j].value));
         dataResult.routeType = pageClassification[i];
@@ -133,23 +133,69 @@ function createRouteFiles(data) {
   );
 }
 
+function createListingPage(data) {
+  fetchIndividualsPropertiesByOntologyClassName("Category").then((res) => {
+    let template = "<div class='flex-container'>";
+
+    const [features, comments] = res;
+    for (let i = 0; i < features.length; i++) {
+      template += `<div class="category-container">
+          <div class="image-container" style='background-image: url("${comments[i]}")'></div>
+          <div class="category-text">${features[i]}</div>
+        </div>`;
+    }
+
+    const writeStream = fs.createWriteStream(`views/pages/${data.route}.ejs`);
+
+    const page = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <%- include('../partials/head'); %>
+        </head>
+  
+        <body class="container">
+          <header>
+            <%- include('../partials/header'); %>
+          </header>
+          <main>
+            <div class="jumbotron">
+              ${template}
+            </div>
+          </main>
+          <footer>
+            <%- include('../partials/footer'); %>
+          </footer>
+        </body>
+      </html>
+    `;
+
+    writeStream.write(page);
+    writeStream.end();
+    console.log(chalk.bgYellow(`Page - ${data.route} Generation Complete`));
+  });
+}
+
 function createPages(data) {
   for (let i = 0; i < data.length; i++) {
     fetchDataPropertiesByOntologyClassName(
       capitalizeFirstLetter(data[i].tags[0])
     ).then((res) => {
       let template = "<div class='main-container'>";
-      for (let i = 0; i < res.length; i++) {
-        template += `<input class="form-control" type="text" placeholder='${res[i]}' /><br/>`;
-      }
 
-      template += `<button type="button" class="form-control btn btn-primary">Submit</button></div>`;
+      if (data[i].routeType === "listing") {
+        createListingPage(data[i]);
+      } else {
+        for (let i = 0; i < res.length; i++) {
+          template += `<input class="form-control" type="text" placeholder='${res[i]}' /><br/>`;
+        }
+        template += `<button type="button" class="form-control btn btn-primary">Submit</button></div>`;
 
-      const writeStream = fs.createWriteStream(
-        `views/pages/${data[i].route}.ejs`
-      );
+        const writeStream = fs.createWriteStream(
+          `views/pages/${data[i].route}.ejs`
+        );
 
-      const page = `
+        const page = `
         <!DOCTYPE html>
         <html lang="en">
           <head>
@@ -172,11 +218,12 @@ function createPages(data) {
         </html>
       `;
 
-      writeStream.write(page);
-      writeStream.end();
-      console.log(
-        chalk.bgYellow(`Page - ${data[i].route} Generation Complete`)
-      );
+        writeStream.write(page);
+        writeStream.end();
+        console.log(
+          chalk.bgYellow(`Page - ${data[i].route} Generation Complete`)
+        );
+      }
     });
   }
 }

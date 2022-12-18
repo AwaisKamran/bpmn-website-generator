@@ -2,7 +2,7 @@ const axios = require("axios");
 
 let ONTOLOGY_CLASSES = [];
 
-const ONTOLOGY_ENDPOINT = process.env.EDUCATION_ONTOLOGY_ENDPOINT;
+const ONTOLOGY_ENDPOINT = process.env.E_COMMERCE_ONTOLOGY_ENDPOINT;
 
 const axiosConfig = {
   headers: {
@@ -37,6 +37,45 @@ function fetchClasses() {
         ONTOLOGY_CLASSES[bindings[i].label.value] = bindings[i].class.value;
       }
       return ONTOLOGY_CLASSES;
+    })
+    .catch(function (error) {
+      console.log(error);
+      return error;
+    });
+}
+
+function fetchIndividualsPropertiesByOntologyClassName(ontologyName) {
+  const postData = {
+    query: `
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX owl: <http://www.w3.org/2002/07/owl#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+      SELECT DISTINCT ?individual ?label ?comment
+      WHERE {
+        ?individual rdf:type <${ONTOLOGY_CLASSES[ontologyName]}>.
+        OPTIONAL {?individual rdf:type owl:NamedIndividual}
+        OPTIONAL {?individual rdfs:label ?label}
+        OPTIONAL {?individual rdfs:comment ?comment}
+      }
+    `,
+  };
+
+  return axios
+    .post(ONTOLOGY_ENDPOINT, postData, axiosConfig)
+    .then(function (response) {
+      let features = [];
+      let comments = [];
+
+      const { results } = response.data;
+      const { bindings } = results;
+
+      for (let i = 0; i < bindings.length; i++) {
+        features.push(bindings[i].label.value);
+        comments.push(bindings[i].comment.value);
+      }
+
+      return [features, comments];
     })
     .catch(function (error) {
       console.log(error);
@@ -121,4 +160,5 @@ module.exports = {
   fetchClasses,
   fetchDataPropertiesByOntologyClassName,
   fetchIndividualsByOntologyClassName,
+  fetchIndividualsPropertiesByOntologyClassName,
 };
