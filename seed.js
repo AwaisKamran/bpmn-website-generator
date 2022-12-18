@@ -18,6 +18,7 @@ const {
   fetchIndividualsPropertiesByOntologyClassName,
 } = require("./utility/sparql");
 const chalk = require("chalk");
+require("dotenv").config();
 
 console.log(
   chalk.bgGreen("Status") + chalk.green.bold(" Initiating Seeding ... \n")
@@ -88,12 +89,14 @@ function consolidateResults(data) {
   for (let i = 0; i < data.length; i++) {
     let dataResult = {};
     dataResult.tags = [];
+
     for (let j = 0; j < data[i].length; j++) {
       if (
         data[i][j].pos == "NN" ||
         data[i][j].pos == "NNS" ||
         data[i][j].pos == "JJ" ||
-        (process.env.MULTI_PAGE === "false" && data[i][j].pos == "VBG")
+        (process.env.MULTI_PAGE == "false" &&
+          (data[i][j].pos === "VBN" || data[i][j].pos === "VB"))
       ) {
         dataResult.tags.push(stem(data[i][j].value));
         dataResult.routeType = pageClassification[i];
@@ -125,8 +128,6 @@ function createRouteFiles(data) {
   `);
   writeStream.end();
   console.log(chalk.bgGreen("Route File Generation Complete "));
-
-  createPages(data);
 
   console.log(
     chalk.bgGreen("\nStatus") + chalk.green(" Processing Complete!!!\n")
@@ -258,7 +259,7 @@ async function createSinglePage(data) {
 
     switch (tags[0]) {
       case "add":
-        template += await addPlainFields(tags);
+        template += addPlainFields(tags);
         break;
 
       case "select":
@@ -268,8 +269,6 @@ async function createSinglePage(data) {
   }
 
   template += `<button type="button" class="form-control btn btn-primary">Submit</button></div>`;
-
-  template += "</div>";
 
   const writeStream = fs.createWriteStream(`views/pages/generated-page.ejs`);
 
@@ -301,7 +300,7 @@ async function createSinglePage(data) {
   console.log(chalk.bgYellow(`Page - generated-page Generation Complete`));
 }
 
-async function addPlainFields(data) {
+function addPlainFields(data) {
   data.splice(0, 1);
 
   let template = "";

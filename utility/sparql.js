@@ -2,7 +2,7 @@ const axios = require("axios");
 
 let ONTOLOGY_CLASSES = [];
 
-const ONTOLOGY_ENDPOINT = process.env.E_COMMERCE_ONTOLOGY_ENDPOINT;
+const ONTOLOGY_ENDPOINT = process.env.EDUCATION_ONTOLOGY_ENDPOINT;
 
 const axiosConfig = {
   headers: {

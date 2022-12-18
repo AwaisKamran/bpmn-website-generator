@@ -8,7 +8,7 @@ const EXCLUSIVE_GATEWAY = "bpmn:ExclusiveGateway";
 const END_EVENT = "bpmn:EndEvent";
 const SEQUENCE_FLOW = "bpmn:SequenceFlow";
 
-const PATH_TO_BPMN_FILE = process.env.E_COMMERCE;
+const PATH_TO_BPMN_FILE = process.env.EDUCATION;
 const ROOT = "bpmn:Definitions";
 
 module.exports = {
