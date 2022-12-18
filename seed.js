@@ -15,6 +15,11 @@ const {
   fetchClasses,
   fetchDataPropertiesByOntologyClassName,
 } = require("./utility/sparql");
+const chalk = require("chalk");
+
+console.log(
+  chalk.bgGreen("Status") + chalk.green.bold(" Initiating Seeding ... \n")
+);
 
 let pageClassification = [];
 let routeTokens = [];
@@ -38,8 +43,11 @@ const tagger = posTagger();
 
 fetchClasses().then((res) => {
   ONTOLOGY_CLASSES = res;
+  console.log(chalk.bgGreen("Fetched Ontology Classes "));
 
   fromFile(PATH_TO_BPMN_FILE, ROOT).then((response) => {
+    console.log(chalk.bgGreen("Fetched BPMN File "));
+
     const { rootElement } = response;
     const { rootElements: components } = rootElement;
     const [initialProcesses] = filterProcesses(components, PROCESS);
@@ -55,7 +63,10 @@ fetchClasses().then((res) => {
       return tagger.tagSentence(item.toLowerCase());
     });
 
-    console.log(taggedSentences);
+    console.log(chalk.bgGreen("Classfiying BPMN Labels Complete "));
+
+    console.log(chalk.bgGreen("Parsing BPMN File Complete "));
+
     const results = consolidateResults(taggedSentences);
     createRouteFiles(results);
   });
@@ -105,7 +116,11 @@ function createRouteFiles(data) {
     module.exports = router;
   `);
   writeStream.end();
+  console.log(chalk.bgGreen("Route File Generation Complete "));
   createPages(data);
+  console.log(
+    chalk.bgGreen("\nStatus") + chalk.green(" Processing Complete!!!\n")
+  );
 }
 
 function createPages(data) {
@@ -113,12 +128,12 @@ function createPages(data) {
     fetchDataPropertiesByOntologyClassName(
       capitalizeFirstLetter(data[i].tags[0])
     ).then((res) => {
-      let template = "";
+      let template = "<div class='main-container'>";
       for (let i = 0; i < res.length; i++) {
         template += `<input class="form-control" type="text" placeholder='${res[i]}' /><br/>`;
       }
 
-      template += `<button type="button" class="form-control btn btn-primary">Submit</button>`;
+      template += `<button type="button" class="form-control btn btn-primary">Submit</button></div>`;
 
       const writeStream = fs.createWriteStream(
         `views/pages/${data[i].route}.ejs`
@@ -149,6 +164,9 @@ function createPages(data) {
 
       writeStream.write(page);
       writeStream.end();
+      console.log(
+        chalk.bgYellow(`Page - ${data[i].route} Generation Complete`)
+      );
     });
   }
 }

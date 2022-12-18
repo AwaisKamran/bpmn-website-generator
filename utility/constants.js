@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const START_EVENT = "bpmn:StartEvent";
 const TASK = "bpmn:Task";
 const COLLABORATION = "bpmn:Collaboration";
@@ -6,7 +8,7 @@ const EXCLUSIVE_GATEWAY = "bpmn:ExclusiveGateway";
 const END_EVENT = "bpmn:EndEvent";
 const SEQUENCE_FLOW = "bpmn:SequenceFlow";
 
-const PATH_TO_BPMN_FILE = "fixtures/e-commerce/diagram.bpmn";
+const PATH_TO_BPMN_FILE = process.env.E_COMMERCE;
 const ROOT = "bpmn:Definitions";
 
 module.exports = {
