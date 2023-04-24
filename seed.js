@@ -1,23 +1,18 @@
-const SimpleBpmnModdle = require("bpmn-moddle/dist/index.cjs");
-const fileReader = require("./utility/file-reader.js");
 const posTagger = require("wink-pos-tagger");
 const stem = require("wink-porter2-stemmer");
-const { camelCase, template } = require("lodash");
+const { camelCase, merge, keyBy, values } = require("lodash");
 const fs = require("fs");
-const classifier = require("./utility/natural-language-proessing/naive-bayes-classifier.js");
-const {
-  TASK,
-  PROCESS,
-  ROOT,
-  PATH_TO_BPMN_FILE,
-} = require("./utility/constants");
+
 const {
   fetchClasses,
   fetchDataPropertiesByOntologyClassName,
   fetchIndividualsByOntologyClassName,
   fetchIndividualsPropertiesByOntologyClassName,
 } = require("./utility/sparql");
+
+const xml2js = require("xml2js");
 const chalk = require("chalk");
+
 require("dotenv").config();
 
 console.log(
@@ -28,61 +23,89 @@ let pageClassification = [];
 let routeTokens = [];
 let ONTOLOGY_CLASSES = [];
 
-function fromFile(file, root, opts) {
-  var contents = fileReader(file);
-  return read(contents, root, opts);
-}
-
-function read(xml, root, opts) {
-  return moddle.fromXML(xml, root, opts);
-}
-
-function createModdle(additionalPackages, options) {
-  return new SimpleBpmnModdle(additionalPackages, options);
-}
-
-const moddle = createModdle();
+const parser = new xml2js.Parser();
 const tagger = posTagger();
 
+function refineTasks(tasks) {
+  const refinedTasks = tasks.map((item) => ({ 
+    id: item.$.id, 
+    name: item.$.name, 
+    outgoing: item.outgoing 
+  }));
+  return refinedTasks;
+}
+
+function refineServiceTasks(tasks) {
+  const refinedTasks = tasks.map((item) => ({ 
+    id: item.$.id, 
+    name: item.$.name, 
+    incoming: item.incoming 
+  }));
+  return refinedTasks;
+}
+
+function refineTextAnnotations(tasks) {
+  const refinedAnnotations = tasks.map((item) => ({ 
+    id: item.$.id, 
+    text: item.text[0]
+  }));
+  return refinedAnnotations;
+}
+
+function refineAssociations(tasks){
+  const refinedAssociations = tasks.map((item) => ({ 
+    id: item.$.targetRef, 
+    source: item.$.sourceRef, 
+  }));
+  return refinedAssociations;
+}
+
 fetchClasses().then((res) => {
-  ONTOLOGY_CLASSES = res;
+  ONTOLOGY_CLASSES = res;['']
   console.log(chalk.bgGreen("Fetched Ontology Classes "));
 
-  fromFile(PATH_TO_BPMN_FILE, ROOT).then((response) => {
-    console.log(chalk.bgGreen("Fetched BPMN File "));
+  /* Read file details */
+  fs.readFile(process.env.ECOMMERCE, (err, data) => {
+    parser.parseString(data, (err, result) => {
+      const { definitions } = result;
+      const { process } = definitions;
+      const { task, serviceTask, textAnnotation, association } = process[0];
+      
+      /* Refine Tasks */
+      const refinedTasks = refineTasks(task);
+      const refinedServiceTasks = refineServiceTasks(serviceTask);
+      const refinedTextAnnotations = refineTextAnnotations(textAnnotation);
+      const refinedAssociations = refineAssociations(association);
 
-    const { rootElement } = response;
-    const { rootElements: components } = rootElement;
-    const [initialProcesses] = filterProcesses(components, PROCESS);
-    const flowElements = initialProcesses.flowElements;
-    const filteredFlowElements = filterProcesses(flowElements, TASK);
-    const taskNames = filteredFlowElements.map((item) => item.name);
+      /* Merge Anootation with tasks */
+      const updatedTextAnnotations = values(merge(keyBy(refinedTextAnnotations, 'id'), keyBy(refinedAssociations, 'id'))).map((item) => ({ source: item.source, text: item.text }));
+      const updatedTasks = values(merge(keyBy(refinedTasks, 'id'), keyBy(updatedTextAnnotations, 'source'))).map((item) => ({
+        id: item.id,
+        name: item.name,
+        outgoing: item.outgoing,
+        text: item.text
+      }));
+      const taskNames = updatedTasks.map((item) => item.name)
+      pageClassification = updatedTasks.map((item) => item.text)
 
-    let taggedSentences = [];
+      /* Tagging Tokens */
+      let taggedSentences = [];
+      taggedSentences = taskNames.map((item) => {
+        routeTokens.push(item.split(" ").join(""));
+        return tagger.tagSentence(item.toLowerCase());
+      });
 
-    taggedSentences = taskNames.map((item) => {
-      pageClassification.push(classifier.predict(item));
-      routeTokens.push(item.split(" ").join(""));
-      return tagger.tagSentence(item.toLowerCase());
-    });
+      console.log(chalk.bgGreen("Classfiying BPMN Labels Complete "));
+      console.log(chalk.bgGreen("Parsing BPMN File Complete "));
 
-    console.log(chalk.bgGreen("Classfiying BPMN Labels Complete "));
+      const results = consolidateResults(taggedSentences);
 
-    console.log(chalk.bgGreen("Parsing BPMN File Complete "));
-
-    const results = consolidateResults(taggedSentences);
-
-    if (process.env.MULTI_PAGE === "true") {
+      /* Create Routes */
       createRouteFiles(results);
-    } else {
-      createSingleRouteFiles(results);
-    }
+      createPages(results);
+    })
   });
 });
-
-function filterProcesses(data, type) {
-  return data.filter((item) => item.$type === type);
-}
 
 function consolidateResults(data) {
   let results = [];
@@ -99,7 +122,7 @@ function consolidateResults(data) {
           (data[i][j].pos === "VBN" || data[i][j].pos === "VB"))
       ) {
         dataResult.tags.push(stem(data[i][j].value));
-        dataResult.routeType = pageClassification[i];
+        dataResult.routeType = pageClassification[i].split(" ")[0];
         dataResult.route = camelCase(routeTokens[i]);
       }
     }
@@ -184,7 +207,7 @@ function createPages(data) {
     ).then((res) => {
       let template = "<div class='main-container'>";
 
-      if (data[i].routeType === "listing") {
+      if (data[i].routeType === "Listing") {
         createListingPage(data[i]);
       } else {
         for (let i = 0; i < res.length; i++) {
@@ -227,77 +250,6 @@ function createPages(data) {
       }
     });
   }
-}
-
-function createSingleRouteFiles(data) {
-  const writeStream = fs.createWriteStream(`routes/index.js`);
-  writeStream.write(`
-    var express = require('express');
-    var router = express.Router();
-
-    router.get('/generated-page', function(req, res) {
-      res.render('pages/generated-page');
-    });
-  `);
-
-  writeStream.write(`
-    module.exports = router;
-  `);
-  writeStream.end();
-  console.log(chalk.bgGreen("Single Route File Generation Complete "));
-  createSinglePage(data);
-  console.log(
-    chalk.bgGreen("\nStatus") + chalk.green(" Processing Complete!!!\n")
-  );
-}
-
-async function createSinglePage(data) {
-  let template = "<div class='main-container'>";
-
-  for (let i = 0; i < data.length; i++) {
-    const tags = data[i].tags;
-
-    switch (tags[0]) {
-      case "add":
-        template += addPlainFields(tags);
-        break;
-
-      case "select":
-        template += await addSelectiveFields(tags);
-        break;
-    }
-  }
-
-  template += `<button type="button" class="form-control btn btn-primary">Submit</button></div>`;
-
-  const writeStream = fs.createWriteStream(`views/pages/generated-page.ejs`);
-
-  const page = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <%- include('../partials/head'); %>
-      </head>
-
-      <body class="container">
-        <header>
-          <%- include('../partials/header'); %>
-        </header>
-        <main>
-          <div class="jumbotron">
-            ${template}
-          </div>
-        </main>
-        <footer>
-          <%- include('../partials/footer'); %>
-        </footer>
-      </body>
-    </html>
-  `;
-
-  writeStream.write(page);
-  writeStream.end();
-  console.log(chalk.bgYellow(`Page - generated-page Generation Complete`));
 }
 
 function addPlainFields(data) {

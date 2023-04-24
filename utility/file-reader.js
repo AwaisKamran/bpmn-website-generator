@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-function readFile(filename) {
+function readFileSync(filename) {
   return fs.readFileSync(filename, { encoding: "UTF-8" });
 }
 

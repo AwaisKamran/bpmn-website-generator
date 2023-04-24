@@ -1,8 +1,10 @@
 const axios = require("axios");
+require("dotenv").config();
 
 let ONTOLOGY_CLASSES = [];
 
-const ONTOLOGY_ENDPOINT = process.env.EDUCATION_ONTOLOGY_ENDPOINT;
+const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT;
+
 
 const axiosConfig = {
   headers: {
