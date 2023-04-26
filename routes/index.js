@@ -2,28 +2,28 @@
     var express = require('express');
     var router = express.Router();
   
-      router.get('/viewProductCategory', function(req, res) {
-        res.render('pages/viewProductCategory');
+      router.get('/viewCategory', function(req, res) {
+        res.render('pages/viewCategory');
       });
     
-      router.get('/addProducts', function(req, res) {
-        res.render('pages/addProducts');
+      router.get('/viewProduct', function(req, res) {
+        res.render('pages/viewProduct');
       });
     
-      router.get('/checkoutOrder', function(req, res) {
-        res.render('pages/checkoutOrder');
+      router.get('/viewCart', function(req, res) {
+        res.render('pages/viewCart');
       });
     
-      router.get('/enterPersonalDetails', function(req, res) {
-        res.render('pages/enterPersonalDetails');
+      router.get('/enterPerson', function(req, res) {
+        res.render('pages/enterPerson');
       });
     
-      router.get('/enterShippingAddress', function(req, res) {
-        res.render('pages/enterShippingAddress');
+      router.get('/enterAddress', function(req, res) {
+        res.render('pages/enterAddress');
       });
     
-      router.get('/enterPaymentDetails', function(req, res) {
-        res.render('pages/enterPaymentDetails');
+      router.get('/enterPayment', function(req, res) {
+        res.render('pages/enterPayment');
       });
     
       router.get('/reviewOrder', function(req, res) {

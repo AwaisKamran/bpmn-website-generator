@@ -1,5 +1,3 @@
-const posTagger = require("wink-pos-tagger");
-const stem = require("wink-porter2-stemmer");
 const { camelCase, merge, keyBy, values } = require("lodash");
 const fs = require("fs");
 
@@ -12,6 +10,7 @@ const {
 
 const xml2js = require("xml2js");
 const chalk = require("chalk");
+const { LISTING } = require("./utility/constants");
 
 require("dotenv").config();
 
@@ -19,43 +18,48 @@ console.log(
   chalk.bgGreen("Status") + chalk.green.bold(" Initiating Seeding ... \n")
 );
 
-let pageClassification = [];
-let routeTokens = [];
-let ONTOLOGY_CLASSES = [];
-
 const parser = new xml2js.Parser();
-const tagger = posTagger();
 
 function refineTasks(tasks) {
-  const refinedTasks = tasks.map((item) => ({ 
-    id: item.$.id, 
-    name: item.$.name, 
-    outgoing: item.outgoing 
+  const refinedTasks = tasks.map((item) => ({
+    id: item.$.id,
+    name: item.$.name,
+    outgoing: item.outgoing
   }));
   return refinedTasks;
 }
 
 function refineServiceTasks(tasks) {
-  const refinedTasks = tasks.map((item) => ({ 
-    id: item.$.id, 
-    name: item.$.name, 
-    incoming: item.incoming 
+  const refinedTasks = tasks.map((item) => ({
+    id: item.$.id,
+    name: item.$.name,
+    incoming: item.incoming
+  }));
+  return refinedTasks;
+}
+
+function refineUserTasks(tasks) {
+  const refinedTasks = tasks.map((item) => ({
+    id: item.$.id,
+    name: item.$.name,
+    incoming: item.incoming,
+    outgoing: item.outgoing
   }));
   return refinedTasks;
 }
 
 function refineTextAnnotations(tasks) {
-  const refinedAnnotations = tasks.map((item) => ({ 
-    id: item.$.id, 
+  const refinedAnnotations = tasks.map((item) => ({
+    id: item.$.id,
     text: item.text[0]
   }));
   return refinedAnnotations;
 }
 
-function refineAssociations(tasks){
-  const refinedAssociations = tasks.map((item) => ({ 
-    id: item.$.targetRef, 
-    source: item.$.sourceRef, 
+function refineAssociations(tasks) {
+  const refinedAssociations = tasks.map((item) => ({
+    id: item.$.targetRef,
+    source: item.$.sourceRef,
   }));
   return refinedAssociations;
 }
@@ -69,36 +73,68 @@ fetchClasses().then((res) => {
     parser.parseString(data, (err, result) => {
       const { definitions } = result;
       const { process } = definitions;
-      const { task, serviceTask, textAnnotation, association } = process[0];
-      
+      const { task, serviceTask, userTask, textAnnotation, association } = process[0];
+
       /* Refine Tasks */
       const refinedTasks = refineTasks(task);
       const refinedServiceTasks = refineServiceTasks(serviceTask);
+      const refinedUserTasks = refineUserTasks(userTask);
       const refinedTextAnnotations = refineTextAnnotations(textAnnotation);
       const refinedAssociations = refineAssociations(association);
 
       /* Merge Anootation with tasks */
       const updatedTextAnnotations = values(merge(keyBy(refinedTextAnnotations, 'id'), keyBy(refinedAssociations, 'id'))).map((item) => ({ source: item.source, text: item.text }));
-      const updatedTasks = values(merge(keyBy(refinedTasks, 'id'), keyBy(updatedTextAnnotations, 'source'))).map((item) => ({
+      const annotatedTasks = values(merge(keyBy(refinedTasks, 'id'), keyBy(updatedTextAnnotations, 'source'))).map((item) => ({
         id: item.id,
         name: item.name,
         outgoing: item.outgoing,
-        text: item.text
+        text: item.text.split(" ")[0]
       }));
-      const taskNames = updatedTasks.map((item) => item.name)
-      pageClassification = updatedTasks.map((item) => item.text)
 
-      /* Tagging Tokens */
-      let taggedSentences = [];
-      taggedSentences = taskNames.map((item) => {
-        routeTokens.push(item.split(" ").join(""));
-        return tagger.tagSentence(item.toLowerCase());
-      });
+      /* Merge User Tasks with tasks */
+      let userTasks = [];
+      for (let i = 0; i < refinedUserTasks.length; i++) {
+        userTasks[refinedUserTasks[i].incoming[0]] = {
+          id: refinedUserTasks[i].id,
+          name: refinedUserTasks[i].name
+        }
+      }
 
-      console.log(chalk.bgGreen("Classfiying BPMN Labels Complete "));
+      for (let i = 0; i < annotatedTasks.length; i++) {
+        for (let j = 0; j < annotatedTasks[i].outgoing.length; j++) {
+          const flowElement = annotatedTasks[i].outgoing[j];
+          if (userTasks[flowElement]) {
+            annotatedTasks[i].userTask = {
+              ...userTasks[flowElement]
+            }
+          }
+        }
+      }
+
+      /* Merge Service Tasks with tasks */
+      serviceTasks = [];
+      for (let i = 0; i < refinedServiceTasks.length; i++) {
+        serviceTasks[refinedServiceTasks[i].incoming[0]] = {
+          id: refinedServiceTasks[i].id,
+          name: refinedServiceTasks[i].name
+        }
+      }
+
+      for (let i = 0; i < annotatedTasks.length; i++) {
+        for (let j = 0; j < annotatedTasks[i].outgoing.length; j++) {
+          const flowElement = annotatedTasks[i].outgoing[j];
+          if (serviceTasks[flowElement]) {
+            annotatedTasks[i].serviceTask = {
+              ...serviceTasks[flowElement]
+            }
+          }
+        }
+      }
+
+      console.log(chalk.bgGreen("Result Consolidated"));
+      const finalTaskList = annotatedTasks.reverse();
       console.log(chalk.bgGreen("Parsing BPMN File Complete "));
-
-      const results = consolidateResults(taggedSentences);
+      const results = consolidateResults(finalTaskList);
 
       /* Create Routes */
       createRouteFiles(results);
@@ -108,27 +144,13 @@ fetchClasses().then((res) => {
 });
 
 function consolidateResults(data) {
-  let results = [];
-  for (let i = 0; i < data.length; i++) {
-    let dataResult = {};
-    dataResult.tags = [];
-
-    for (let j = 0; j < data[i].length; j++) {
-      if (
-        data[i][j].pos == "NN" ||
-        data[i][j].pos == "NNS" ||
-        data[i][j].pos == "JJ" ||
-        (process.env.MULTI_PAGE == "false" &&
-          (data[i][j].pos === "VBN" || data[i][j].pos === "VB"))
-      ) {
-        dataResult.tags.push(stem(data[i][j].value));
-        dataResult.routeType = pageClassification[i].split(" ")[0];
-        dataResult.route = camelCase(routeTokens[i]);
-      }
-    }
-    results.push(dataResult);
+  for (let i=0; i <data.length; i++) {
+    data[i].route = camelCase(data[i].name.split(" ").join(""));
+    data[i].routeType = data[i].text.toLowerCase();
+    data[i].className = data[i].name.split(" ")[1];
+    delete data[i].text;
   }
-  return results;
+  return data;
 }
 
 function createRouteFiles(data) {
@@ -200,54 +222,58 @@ function createListingPage(data) {
   });
 }
 
+function createActionPage(res, data) {
+  let template = "<div class='main-container'>";
+
+  for (let i = 0; i < res.length; i++) {
+    template += `<input class="form-control" type="text" placeholder='${res[i]}' /><br/>`;
+  }
+  template += `<button type="button" class="form-control btn btn-primary">Submit</button></div>`;
+
+  const writeStream = fs.createWriteStream(
+    `views/pages/${data.route}.ejs`
+  );
+
+  const page = `
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <%- include('../partials/head'); %>
+    </head>
+
+    <body class="container">
+      <header>
+        <%- include('../partials/header'); %>
+      </header>
+      <main>
+        <div class="jumbotron">
+          ${template}
+        </div>
+      </main>
+      <footer>
+        <%- include('../partials/footer'); %>
+      </footer>
+    </body>
+  </html>
+`;
+
+  writeStream.write(page);
+  writeStream.end();
+}
+
 function createPages(data) {
-  for (let i = 0; i < data.length; i++) {
+  for (let i=0; i <data.length; i++) {
+    const { route, routeType, className} = data[i];
     fetchDataPropertiesByOntologyClassName(
-      capitalizeFirstLetter(data[i].tags[0])
-    ).then((res) => {
-      let template = "<div class='main-container'>";
+      capitalizeFirstLetter(className)
+    ).then((response) => {
+      routeType === LISTING ?
+      createListingPage(data[i]):
+      createActionPage(response, data[i]);
 
-      if (data[i].routeType === "Listing") {
-        createListingPage(data[i]);
-      } else {
-        for (let i = 0; i < res.length; i++) {
-          template += `<input class="form-control" type="text" placeholder='${res[i]}' /><br/>`;
-        }
-        template += `<button type="button" class="form-control btn btn-primary">Submit</button></div>`;
-
-        const writeStream = fs.createWriteStream(
-          `views/pages/${data[i].route}.ejs`
-        );
-
-        const page = `
-        <!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <%- include('../partials/head'); %>
-          </head>
-
-          <body class="container">
-            <header>
-              <%- include('../partials/header'); %>
-            </header>
-            <main>
-              <div class="jumbotron">
-                ${template}
-              </div>
-            </main>
-            <footer>
-              <%- include('../partials/footer'); %>
-            </footer>
-          </body>
-        </html>
-      `;
-
-        writeStream.write(page);
-        writeStream.end();
-        console.log(
-          chalk.bgYellow(`Page - ${data[i].route} Generation Complete`)
-        );
-      }
+      console.log(
+        chalk.bgYellow(`Page - ${route} Generation Complete`)
+      );
     });
   }
 }
