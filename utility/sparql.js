@@ -66,6 +66,7 @@ function fetchIndividualsPropertiesByOntologyClassName(ontologyName) {
   return axios
     .post(ONTOLOGY_ENDPOINT, postData, axiosConfig)
     .then(function (response) {
+      console.log(response.data);
       let features = [];
       let comments = [];
 
@@ -158,9 +159,45 @@ function fetchDataPropertiesByOntologyClassName(ontologyName) {
     });
 }
 
+function fetchSubClassesByOntologyClassName(ontologyName){
+  const postData = {
+    query: `
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX owl: <http://www.w3.org/2002/07/owl#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+      SELECT DISTINCT ?individual ?label ?comment
+      WHERE {
+        ?individual rdfs:subClassOf <${ONTOLOGY_CLASSES[ontologyName]}>.
+        OPTIONAL {?individual rdf:type owl:Class}
+        OPTIONAL {?individual rdfs:label ?label}
+        OPTIONAL {?individual rdfs:comment ?comment}
+      }
+    `,
+  };
+
+  return axios
+  .post(ONTOLOGY_ENDPOINT, postData, axiosConfig)
+  .then(function (response) {
+    const {results} = response.data;
+    const {bindings} = results;
+    const data = bindings.map((item) => ({
+      key: item.individual.value,
+      value: item.label.value,
+      comment: item.comment.value
+    }));
+    return data;
+   })
+  .catch(function (error) {
+    console.log(error);
+    return error;
+  });
+}
+
 module.exports = {
   fetchClasses,
   fetchDataPropertiesByOntologyClassName,
   fetchIndividualsByOntologyClassName,
   fetchIndividualsPropertiesByOntologyClassName,
+  fetchSubClassesByOntologyClassName
 };

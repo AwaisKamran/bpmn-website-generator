@@ -6,11 +6,12 @@ const {
   fetchDataPropertiesByOntologyClassName,
   fetchIndividualsByOntologyClassName,
   fetchIndividualsPropertiesByOntologyClassName,
+  fetchSubClassesByOntologyClassName
 } = require("./utility/sparql");
 
 const xml2js = require("xml2js");
 const chalk = require("chalk");
-const { LISTING } = require("./utility/constants");
+const { LISTING, CATEGORY, GET, POST, ACTION } = require("./utility/constants");
 
 require("dotenv").config();
 
@@ -95,7 +96,6 @@ fetchClasses().then((res) => {
       let userTasks = [];
       for (let i = 0; i < refinedUserTasks.length; i++) {
         userTasks[refinedUserTasks[i].incoming[0]] = {
-          id: refinedUserTasks[i].id,
           name: refinedUserTasks[i].name
         }
       }
@@ -115,7 +115,6 @@ fetchClasses().then((res) => {
       serviceTasks = [];
       for (let i = 0; i < refinedServiceTasks.length; i++) {
         serviceTasks[refinedServiceTasks[i].incoming[0]] = {
-          id: refinedServiceTasks[i].id,
           name: refinedServiceTasks[i].name
         }
       }
@@ -125,7 +124,8 @@ fetchClasses().then((res) => {
           const flowElement = annotatedTasks[i].outgoing[j];
           if (serviceTasks[flowElement]) {
             annotatedTasks[i].serviceTask = {
-              ...serviceTasks[flowElement]
+              ...serviceTasks[flowElement],
+              type: annotatedTasks[i].text.toLowerCase() === LISTING ? GET : POST
             }
           }
         }
@@ -135,6 +135,15 @@ fetchClasses().then((res) => {
       const finalTaskList = annotatedTasks.reverse();
       console.log(chalk.bgGreen("Parsing BPMN File Complete "));
       const results = consolidateResults(finalTaskList);
+
+
+      /* Remove unwanted fields */
+      for(let i=0; i<results.length; i++){
+        delete results[i].id;
+        delete results[i].outgoing;
+      }
+
+      console.log(results);
 
       /* Create Routes */
       createRouteFiles(results);
@@ -180,7 +189,8 @@ function createRouteFiles(data) {
 }
 
 function createListingPage(data) {
-  fetchIndividualsPropertiesByOntologyClassName("Category").then((res) => {
+  const { className, route} = data;
+  fetchIndividualsPropertiesByOntologyClassName(className).then((res) => {
     let template = "<div class='flex-container'>";
 
     const [features, comments] = res;
@@ -191,7 +201,7 @@ function createListingPage(data) {
         </div>`;
     }
 
-    const writeStream = fs.createWriteStream(`views/pages/${data.route}.ejs`);
+    const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
 
     const page = `
       <!DOCTYPE html>
@@ -218,7 +228,51 @@ function createListingPage(data) {
 
     writeStream.write(page);
     writeStream.end();
-    console.log(chalk.bgYellow(`Page - ${data.route} Generation Complete`));
+    console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
+  });
+}
+
+function createCategoryPage(data) {
+  const { className, route} = data;
+
+  fetchSubClassesByOntologyClassName(className).then((response) => {
+    let template = "<div class='flex-container'>";
+
+    for (let i=0; i <response.length; i++) {
+      template += `<div class="category-container">
+          <div class="image-container" style='background-image: url("${response[i].comment}")'></div>
+          <div class="category-text">${response[i].value}</div>
+        </div>`;
+    }
+
+    const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
+
+    const page = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <%- include('../partials/head'); %>
+        </head>
+  
+        <body class="container">
+          <header>
+            <%- include('../partials/header'); %>
+          </header>
+          <main>
+            <div class="jumbotron">
+              ${template}
+            </div>
+          </main>
+          <footer>
+            <%- include('../partials/footer'); %>
+          </footer>
+        </body>
+      </html>
+    `;
+
+    writeStream.write(page);
+    writeStream.end();
+    console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
   });
 }
 
@@ -267,9 +321,12 @@ function createPages(data) {
     fetchDataPropertiesByOntologyClassName(
       capitalizeFirstLetter(className)
     ).then((response) => {
-      routeType === LISTING ?
-      createListingPage(data[i]):
-      createActionPage(response, data[i]);
+      if(routeType === LISTING)
+        createListingPage(data[i])
+      else if (routeType === CATEGORY)
+       createCategoryPage(data[i])
+      else 
+        createActionPage(response, data[i])
 
       console.log(
         chalk.bgYellow(`Page - ${route} Generation Complete`)
