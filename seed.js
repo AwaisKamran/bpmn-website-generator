@@ -11,7 +11,7 @@ const {
 
 const xml2js = require("xml2js");
 const chalk = require("chalk");
-const { LISTING, CATEGORY, GET, POST, ACTION } = require("./utility/constants");
+const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK } = require("./utility/constants");
 
 require("dotenv").config();
 
@@ -143,8 +143,6 @@ fetchClasses().then((res) => {
         delete results[i].outgoing;
       }
 
-      console.log(results);
-
       /* Create Routes */
       createRouteFiles(results);
       createPages(results);
@@ -159,6 +157,18 @@ function consolidateResults(data) {
     data[i].className = data[i].name.split(" ")[1];
     delete data[i].text;
   }
+
+  for(let i=0; i<data.length; i++){
+    if(data[i+1]){
+      if(data[i+1].routeType === LISTING) {
+        data[i].link = `${BASE_LINK}${data[i+1].route}?id=#`;
+      }
+      else{
+        data[i].link = `${BASE_LINK}${data[i+1].route}`;
+      }
+    }
+  }
+
   return data;
 }
 
@@ -210,7 +220,7 @@ function createListingPage(data) {
           <%- include('../partials/head'); %>
         </head>
   
-        <body class="container">
+        <body>
           <header>
             <%- include('../partials/header'); %>
           </header>
@@ -233,16 +243,16 @@ function createListingPage(data) {
 }
 
 function createCategoryPage(data) {
-  const { className, route} = data;
+  const { className, route, link} = data;
 
   fetchSubClassesByOntologyClassName(className).then((response) => {
     let template = "<div class='flex-container'>";
 
     for (let i=0; i <response.length; i++) {
-      template += `<div class="category-container">
+      template += `<a href='${link}'><div class="category-container box">
           <div class="image-container" style='background-image: url("${response[i].comment}")'></div>
           <div class="category-text">${response[i].value}</div>
-        </div>`;
+        </div></a>`;
     }
 
     const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
@@ -254,7 +264,7 @@ function createCategoryPage(data) {
           <%- include('../partials/head'); %>
         </head>
   
-        <body class="container">
+        <body>
           <header>
             <%- include('../partials/header'); %>
           </header>
@@ -295,7 +305,7 @@ function createActionPage(res, data) {
       <%- include('../partials/head'); %>
     </head>
 
-    <body class="container">
+    <body>
       <header>
         <%- include('../partials/header'); %>
       </header>

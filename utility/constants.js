@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const BASE_LINK = `http://localhost:${process.env.BASE}/`;
 const PATH_TO_BPMN_FILE = process.env.ECOMMERCE;
 const LISTING = "listing";
 const ACTION = "action";
@@ -13,7 +14,8 @@ module.exports = {
   CATEGORY,
   ACTION,
   GET,
-  POST
+  POST,
+  BASE_LINK
 };
 
 // Copy .env file

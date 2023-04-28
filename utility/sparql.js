@@ -5,7 +5,6 @@ let ONTOLOGY_CLASSES = [];
 
 const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT;
 
-
 const axiosConfig = {
   headers: {
     "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -66,7 +65,6 @@ function fetchIndividualsPropertiesByOntologyClassName(ontologyName) {
   return axios
     .post(ONTOLOGY_ENDPOINT, postData, axiosConfig)
     .then(function (response) {
-      console.log(response.data);
       let features = [];
       let comments = [];
 
