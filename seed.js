@@ -5,8 +5,8 @@ const {
   fetchClasses,
   fetchDataPropertiesByOntologyClassName,
   fetchIndividualsByOntologyClassName,
+  fetchSubClassesByOntologyClassName,
   fetchIndividualsPropertiesByOntologyClassName,
-  fetchSubClassesByOntologyClassName
 } = require("./utility/sparql");
 
 const xml2js = require("xml2js");
@@ -20,6 +20,7 @@ console.log(
 );
 
 const parser = new xml2js.Parser();
+let ONTOLOGY_CLASSES = [];
 
 function refineTasks(tasks) {
   const refinedTasks = tasks.map((item) => ({
@@ -65,91 +66,6 @@ function refineAssociations(tasks) {
   return refinedAssociations;
 }
 
-fetchClasses().then((res) => {
-  ONTOLOGY_CLASSES = res;['']
-  console.log(chalk.bgGreen("Fetched Ontology Classes "));
-
-  /* Read file details */
-  fs.readFile(process.env.ECOMMERCE, (err, data) => {
-    parser.parseString(data, (err, result) => {
-      const { definitions } = result;
-      const { process } = definitions;
-      const { task, serviceTask, userTask, textAnnotation, association } = process[0];
-
-      /* Refine Tasks */
-      const refinedTasks = refineTasks(task);
-      const refinedServiceTasks = refineServiceTasks(serviceTask);
-      const refinedUserTasks = refineUserTasks(userTask);
-      const refinedTextAnnotations = refineTextAnnotations(textAnnotation);
-      const refinedAssociations = refineAssociations(association);
-
-      /* Merge Anootation with tasks */
-      const updatedTextAnnotations = values(merge(keyBy(refinedTextAnnotations, 'id'), keyBy(refinedAssociations, 'id'))).map((item) => ({ source: item.source, text: item.text }));
-      const annotatedTasks = values(merge(keyBy(refinedTasks, 'id'), keyBy(updatedTextAnnotations, 'source'))).map((item) => ({
-        id: item.id,
-        name: item.name,
-        outgoing: item.outgoing,
-        text: item.text.split(" ")[0]
-      }));
-
-      /* Merge User Tasks with tasks */
-      let userTasks = [];
-      for (let i = 0; i < refinedUserTasks.length; i++) {
-        userTasks[refinedUserTasks[i].incoming[0]] = {
-          name: refinedUserTasks[i].name
-        }
-      }
-
-      for (let i = 0; i < annotatedTasks.length; i++) {
-        for (let j = 0; j < annotatedTasks[i].outgoing.length; j++) {
-          const flowElement = annotatedTasks[i].outgoing[j];
-          if (userTasks[flowElement]) {
-            annotatedTasks[i].userTask = {
-              ...userTasks[flowElement]
-            }
-          }
-        }
-      }
-
-      /* Merge Service Tasks with tasks */
-      serviceTasks = [];
-      for (let i = 0; i < refinedServiceTasks.length; i++) {
-        serviceTasks[refinedServiceTasks[i].incoming[0]] = {
-          name: refinedServiceTasks[i].name
-        }
-      }
-
-      for (let i = 0; i < annotatedTasks.length; i++) {
-        for (let j = 0; j < annotatedTasks[i].outgoing.length; j++) {
-          const flowElement = annotatedTasks[i].outgoing[j];
-          if (serviceTasks[flowElement]) {
-            annotatedTasks[i].serviceTask = {
-              ...serviceTasks[flowElement],
-              type: annotatedTasks[i].text.toLowerCase() === LISTING ? GET : POST
-            }
-          }
-        }
-      }
-
-      console.log(chalk.bgGreen("Result Consolidated"));
-      const finalTaskList = annotatedTasks.reverse();
-      console.log(chalk.bgGreen("Parsing BPMN File Complete "));
-      const results = consolidateResults(finalTaskList);
-
-
-      /* Remove unwanted fields */
-      for(let i=0; i<results.length; i++){
-        delete results[i].id;
-        delete results[i].outgoing;
-      }
-
-      /* Create Routes */
-      createRouteFiles(results);
-      createPages(results);
-    })
-  });
-});
-
 function consolidateResults(data) {
   for (let i=0; i <data.length; i++) {
     data[i].route = camelCase(data[i].name.split(" ").join(""));
@@ -161,7 +77,7 @@ function consolidateResults(data) {
   for(let i=0; i<data.length; i++){
     if(data[i+1]){
       if(data[i+1].routeType === LISTING) {
-        data[i].link = `${BASE_LINK}${data[i+1].route}?id=#`;
+        data[i].link = `${BASE_LINK}${data[i+1].route}?id=`;
       }
       else{
         data[i].link = `${BASE_LINK}${data[i+1].route}`;
@@ -177,6 +93,14 @@ function createRouteFiles(data) {
   writeStream.write(`
     var express = require('express');
     var router = express.Router();
+    const cors = require("cors");
+
+    const corsOptions = {
+      origin:'*'
+    }
+    
+    const app = express();
+    app.use(cors(corsOptions)) 
   `);
 
   for (let i = 0; i < data.length; i++) {
@@ -199,47 +123,66 @@ function createRouteFiles(data) {
 }
 
 function createListingPage(data) {
+
   const { className, route} = data;
-  fetchIndividualsPropertiesByOntologyClassName(className).then((res) => {
-    let template = "<div class='flex-container'>";
+  const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
+  const ontologyValues = [...Object.values(ONTOLOGY_CLASSES)];
+  const ontologyKeys = [...Object.keys(ONTOLOGY_CLASSES)];
 
-    const [features, comments] = res;
-    for (let i = 0; i < features.length; i++) {
-      template += `<div class="category-container">
-          <div class="image-container" style='background-image: url("${comments[i]}")'></div>
-          <div class="category-text">${features[i]}</div>
-        </div>`;
-    }
+  const page = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <%- include('../partials/head'); %>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        
+        <script>
+          const ONTOLOGY_ENDPOINT = '${process.env.ECOMMERCE_ONTOLOGY_ENDPOINT}';
+          let ontologyKeys = '${ontologyKeys.join(",")}';
+          let ontologyValues = '${ontologyValues.join(",")}';
+          ontologyKeys = ontologyKeys.split(",");
+          ontologyValues = ontologyValues.split(",");
+        </script>
 
-    const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
+        <%- include('../partials/listing-partials'); %>
+      </head>
 
-    const page = `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <%- include('../partials/head'); %>
-        </head>
-  
-        <body>
-          <header>
-            <%- include('../partials/header'); %>
-          </header>
-          <main>
-            <div class="jumbotron">
-              ${template}
-            </div>
-          </main>
-          <footer>
-            <%- include('../partials/footer'); %>
-          </footer>
-        </body>
-      </html>
-    `;
+      <body>
+        <header>
+          <%- include('../partials/header'); %>
+        </header>
+        <main>
+          <div class="jumbotron" id="container">
+            <center>
+              <div class="loadingio-spinner-spinner-5ok1oyvgq04">
+                <div class="ldio-6t9gy4h2dvm">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+              </div>
+            </center>
+          </div>
+        </main>
+        <footer>
+          <%- include('../partials/footer'); %>
+        </footer>
+      </body>
+    </html>
+  `;
 
-    writeStream.write(page);
-    writeStream.end();
-    console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
-  });
+  writeStream.write(page);
+  writeStream.end();
+  console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
 }
 
 function createCategoryPage(data) {
@@ -249,7 +192,7 @@ function createCategoryPage(data) {
     let template = "<div class='flex-container'>";
 
     for (let i=0; i <response.length; i++) {
-      template += `<a href='${link}'><div class="category-container box">
+      template += `<a href='${link}${response[i].value}'><div class="category-container box">
           <div class="image-container" style='background-image: url("${response[i].comment}")'></div>
           <div class="category-text">${response[i].value}</div>
         </div></a>`;
@@ -378,3 +321,88 @@ async function addSelectiveFields(data) {
 function capitalizeFirstLetter(string) {
   return string ? string.charAt(0).toUpperCase() + string.slice(1) : null;
 }
+
+fetchClasses().then((res) => {
+  ONTOLOGY_CLASSES = res;
+  console.log(chalk.bgGreen("Fetched Ontology Classes "));
+
+  /* Read file details */
+  fs.readFile(process.env.ECOMMERCE, (err, data) => {
+    parser.parseString(data, (err, result) => {
+      const { definitions } = result;
+      const { process } = definitions;
+      const { task, serviceTask, userTask, textAnnotation, association } = process[0];
+
+      /* Refine Tasks */
+      const refinedTasks = refineTasks(task);
+      const refinedServiceTasks = refineServiceTasks(serviceTask);
+      const refinedUserTasks = refineUserTasks(userTask);
+      const refinedTextAnnotations = refineTextAnnotations(textAnnotation);
+      const refinedAssociations = refineAssociations(association);
+
+      /* Merge Anootation with tasks */
+      const updatedTextAnnotations = values(merge(keyBy(refinedTextAnnotations, 'id'), keyBy(refinedAssociations, 'id'))).map((item) => ({ source: item.source, text: item.text }));
+      const annotatedTasks = values(merge(keyBy(refinedTasks, 'id'), keyBy(updatedTextAnnotations, 'source'))).map((item) => ({
+        id: item.id,
+        name: item.name,
+        outgoing: item.outgoing,
+        text: item.text.split(" ")[0]
+      }));
+
+      /* Merge User Tasks with tasks */
+      let userTasks = [];
+      for (let i = 0; i < refinedUserTasks.length; i++) {
+        userTasks[refinedUserTasks[i].incoming[0]] = {
+          name: refinedUserTasks[i].name
+        }
+      }
+
+      for (let i = 0; i < annotatedTasks.length; i++) {
+        for (let j = 0; j < annotatedTasks[i].outgoing.length; j++) {
+          const flowElement = annotatedTasks[i].outgoing[j];
+          if (userTasks[flowElement]) {
+            annotatedTasks[i].userTask = {
+              ...userTasks[flowElement]
+            }
+          }
+        }
+      }
+
+      /* Merge Service Tasks with tasks */
+      serviceTasks = [];
+      for (let i = 0; i < refinedServiceTasks.length; i++) {
+        serviceTasks[refinedServiceTasks[i].incoming[0]] = {
+          name: refinedServiceTasks[i].name
+        }
+      }
+
+      for (let i = 0; i < annotatedTasks.length; i++) {
+        for (let j = 0; j < annotatedTasks[i].outgoing.length; j++) {
+          const flowElement = annotatedTasks[i].outgoing[j];
+          if (serviceTasks[flowElement]) {
+            annotatedTasks[i].serviceTask = {
+              ...serviceTasks[flowElement],
+              type: annotatedTasks[i].text.toLowerCase() === LISTING ? GET : POST
+            }
+          }
+        }
+      }
+
+      console.log(chalk.bgGreen("Result Consolidated"));
+      const finalTaskList = annotatedTasks.reverse();
+      console.log(chalk.bgGreen("Parsing BPMN File Complete "));
+      const results = consolidateResults(finalTaskList);
+
+
+      /* Remove unwanted fields */
+      for(let i=0; i<results.length; i++){
+        delete results[i].id;
+        delete results[i].outgoing;
+      }
+
+      /* Create Routes */
+      createRouteFiles(results);
+      createPages(results);
+    })
+  });
+});
