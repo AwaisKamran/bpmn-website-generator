@@ -1,0 +1,67 @@
+<script>
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const id = urlParams.get('id');
+
+    const axiosConfig = {
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        },
+    };
+
+    function fetchIndividualsPropertiesByOntologyClassName(ontologyName) {
+        const postData = {
+            query: `
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+            SELECT DISTINCT ?individual ?label ?comment
+            WHERE {
+                ?individual rdf:type <${ontologyValues[ontologyKeys.indexOf(ontologyName)]}>.
+                OPTIONAL {?individual rdf:type owl:NamedIndividual}
+                OPTIONAL {?individual rdfs:label ?label}
+                OPTIONAL {?individual rdfs:comment ?comment}
+            }
+            `,
+        };
+
+        return axios
+        .post(ONTOLOGY_ENDPOINT, postData, axiosConfig)
+        .then(function (response) {
+            let data = []
+
+            const { results } = response.data;
+            const { bindings } = results;
+
+            for (let i = 0; i < bindings.length; i++) {
+                data.push({
+                    name: bindings[i].label.value,
+                    picture: bindings[i].comment.value,
+                    id: bindings[i].individual.value
+                });
+            }
+
+            return data;
+        })
+        .catch(function (error) {
+            console.log(error);
+            return error;
+        });
+    }
+
+    if(id){
+        const data = fetchIndividualsPropertiesByOntologyClassName(id).then((response) => {
+             let template = "<div class='flex-container'>";
+
+            for (let i=0; i < response.length; i++) {
+                    template += `<div class="product-container">
+                    <div class="product-image" style='background-image: url("${response[i].picture}")'></div>
+                    <div class="product-text">${response[i].name}</div>
+                    </div>`;
+            }
+
+            document.getElementById("container").innerHTML = template;
+        });
+    }
+</script>

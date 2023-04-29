@@ -37,6 +37,7 @@ function fetchClasses() {
       for (let i = 0; i < bindings.length; i++) {
         ONTOLOGY_CLASSES[bindings[i].label.value] = bindings[i].class.value;
       }
+
       return ONTOLOGY_CLASSES;
     })
     .catch(function (error) {
@@ -197,5 +198,5 @@ module.exports = {
   fetchDataPropertiesByOntologyClassName,
   fetchIndividualsByOntologyClassName,
   fetchIndividualsPropertiesByOntologyClassName,
-  fetchSubClassesByOntologyClassName
+  fetchSubClassesByOntologyClassName,
 };

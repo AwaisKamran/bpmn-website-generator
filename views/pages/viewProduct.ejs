@@ -1,22 +1,50 @@
 
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <%- include('../partials/head'); %>
-        </head>
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <%- include('../partials/head'); %>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        
+        <script>
+          const ONTOLOGY_ENDPOINT = 'http://localhost:3030/e-commerce/sparql';
+          let ontologyKeys = 'Customer,Product,Brand,Person,Address,Category,Review,CreditCard,Organization,Payment,Cosmetics,Food,PaymentMethod,Meat,CashOnDelivery,Personal Care,Accessories,Baby Care,Electronics,Household Supplies,Vegetables,Beverages';
+          let ontologyValues = 'http://webprotege.stanford.edu/RDDpLAIP61EEfaqINzkLo8X,http://webprotege.stanford.edu/RCZrod9HaWJuP7ZhdyZvUp9,http://webprotege.stanford.edu/R8XYjW7RvL5SV3mTHck0SXt,http://webprotege.stanford.edu/RCpdQ75kUyaELKzXkrKRk6,http://webprotege.stanford.edu/R7VkbhFMF4gcbQNntrDbfuH,http://webprotege.stanford.edu/RDVco1nnNuVqCUDwp1p32X3,http://webprotege.stanford.edu/RRkd2pt5hor6LH4Sdf6FEB,http://webprotege.stanford.edu/R7XduZmy48jXXTBJrsWTjj3,http://webprotege.stanford.edu/R99d2XpMaYsI8g129rVXxKh,http://webprotege.stanford.edu/R9grk7UfMSgtLHADLVQ80zW,http://webprotege.stanford.edu/R70q2GVivwpMjDeSrXJ9M1C,http://webprotege.stanford.edu/R7Vea5HIHBXCiTysiaQRwBB,http://webprotege.stanford.edu/R9N9Fqh3msGsGYxoymQYoFO,http://webprotege.stanford.edu/R7ZppMorzincT7LndznIPKH,http://webprotege.stanford.edu/R8a631LDkc69z6LT0imKlD3,http://webprotege.stanford.edu/R9LYOfbjDGBC2BG5WSI0d5F,http://webprotege.stanford.edu/R9W9Enl2bW5XVqG0ZIkaPmn,http://webprotege.stanford.edu/RDHjMR92GyVHUWbB6P3GLyV,http://webprotege.stanford.edu/RDL1N1XD3md7snDqTrF1MdJ,http://webprotege.stanford.edu/RDLJNWhcdsBNN3oiCkiihPu,http://webprotege.stanford.edu/RFQJnjTPcBNlGcVlNYRgM3,http://webprotege.stanford.edu/Ruh5JZRFYjxo4Rf51Dby7c';
+          ontologyKeys = ontologyKeys.split(",");
+          ontologyValues = ontologyValues.split(",");
+        </script>
+
+        <%- include('../partials/listing-partials'); %>
+      </head>
+
+      <body>
+        <header>
+          <%- include('../partials/header'); %>
+        </header>
+        <main>
+          <div class="jumbotron" id="container">
+            <center>
+              <div class="loadingio-spinner-spinner-5ok1oyvgq04">
+                <div class="ldio-6t9gy4h2dvm">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+              </div>
+            </center>
+          </div>
+        </main>
+        <footer>
+          <%- include('../partials/footer'); %>
+        </footer>
+      </body>
+    </html>
   
-        <body>
-          <header>
-            <%- include('../partials/header'); %>
-          </header>
-          <main>
-            <div class="jumbotron">
-              <div class='flex-container'>
-            </div>
-          </main>
-          <footer>
-            <%- include('../partials/footer'); %>
-          </footer>
-        </body>
-      </html>
-    

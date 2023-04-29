@@ -1,6 +1,14 @@
 
     var express = require('express');
     var router = express.Router();
+    const cors = require("cors");
+
+    const corsOptions = {
+      origin:'*'
+    }
+    
+    const app = express();
+    app.use(cors(corsOptions)) 
   
       router.get('/viewCategory', function(req, res) {
         res.render('pages/viewCategory');
