@@ -117,3 +117,19 @@
 .box:hover::after {
     opacity: 1;
 }
+
+.button-style{
+  margin-top: 5px;
+}
+
+.button-back{
+  margin-left: 50px;
+  margin-bottom: 25px;
+  outline: 0px;
+  border: 1px solid gray;
+  font-size: 14px;
+}
+
+.back-icon{
+  font-size: 12px;
+}

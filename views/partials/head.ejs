@@ -8,4 +8,16 @@
 <link rel="stylesheet" href="style/header.css" />
 <link rel="stylesheet" href="style/footer.css" />
 <link rel="stylesheet" href="style/loader.css" />
+<link rel="stylesheet" href="style/snackbar.min.css" />
+
+<script src="script/snackbar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lozad/dist/lozad.min.js"></script>
+<script>
+    const observer = lozad('.lozad', {
+        rootMargin: '5px 0px', // syntax similar to that of CSS Margin
+        threshold: 0.1, // ratio of element convergence
+        enableAutoReload: true // it will reload the new image when validating attributes changes
+    });
+    observer.observe();
+</script>
 

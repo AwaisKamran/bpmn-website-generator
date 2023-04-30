@@ -123,11 +123,11 @@ function createRouteFiles(data) {
 }
 
 function createListingPage(data) {
-
-  const { className, route} = data;
+  const { routeType, route} = data;
   const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
   const ontologyValues = [...Object.values(ONTOLOGY_CLASSES)];
   const ontologyKeys = [...Object.keys(ONTOLOGY_CLASSES)];
+  const userTaskEvent = camelCase(data.userTask.name.split(" ").join(""));
 
   const page = `
     <!DOCTYPE html>
@@ -142,6 +142,20 @@ function createListingPage(data) {
           let ontologyValues = '${ontologyValues.join(",")}';
           ontologyKeys = ontologyKeys.split(",");
           ontologyValues = ontologyValues.split(",");
+          let routeType = '${routeType}';
+          let userTask = '${data.userTask.name}';
+          let userTaskEvent = '${userTaskEvent}';
+        </script>
+
+        <script>
+          function ${userTaskEvent}(){
+            SnackBar({
+              message: 'User Action Executed - ${data.userTask.name}',
+              status: "success",
+              icon: "plus",
+              position: "br"
+            });
+          }
         </script>
 
         <%- include('../partials/listing-partials'); %>
@@ -152,6 +166,7 @@ function createListingPage(data) {
           <%- include('../partials/header'); %>
         </header>
         <main>
+          <div id="snackbar"></div>
           <div class="jumbotron" id="container">
             <center>
               <div class="loadingio-spinner-spinner-5ok1oyvgq04">
@@ -193,7 +208,7 @@ function createCategoryPage(data) {
 
     for (let i=0; i <response.length; i++) {
       template += `<a href='${link}${response[i].value}'><div class="category-container box">
-          <div class="image-container" style='background-image: url("${response[i].comment}")'></div>
+          <div class="image-container" class="lozad" style='background-image: url("${response[i].comment}")'></div>
           <div class="category-text">${response[i].value}</div>
         </div></a>`;
     }
