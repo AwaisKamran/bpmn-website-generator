@@ -78,4 +78,7 @@
             document.getElementById("container").innerHTML = template;
         });
     }
+    else{
+        const data = localStorage.getItem(`${taskName.split(" ")[1].toLowerCase()}`);
+    }
 </script>

@@ -147,3 +147,8 @@
 .back-icon{
   font-size: 12px;
 }
+
+.header-link{
+  text-decoration: none;
+  color: white;
+}

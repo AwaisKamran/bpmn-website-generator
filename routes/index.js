@@ -10,6 +10,10 @@
     const app = express();
     app.use(cors(corsOptions)) 
   
+        router.get('/', function(req, res) {
+          res.render('pages/viewCategory');
+        });
+      
       router.get('/viewCategory', function(req, res) {
         res.render('pages/viewCategory');
       });

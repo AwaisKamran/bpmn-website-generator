@@ -65,6 +65,15 @@ function refineAssociations(tasks) {
   return refinedAssociations;
 }
 
+function refineMenuSequenceFlow(tasks){
+  const refinedMenuSequenceFlow = tasks.map((item) => ({
+    id: item.$.id,
+    name: item.$.name,
+    target: item.$.targetRef
+  }));
+  return refinedMenuSequenceFlow;
+}
+
 function consolidateResults(data) {
   for (let i=0; i <data.length; i++) {
     data[i].route = camelCase(data[i].name.split(" ").join(""));
@@ -103,6 +112,14 @@ function createRouteFiles(data) {
   `);
 
   for (let i = 0; i < data.length; i++) {
+    if(i === 0){
+      writeStream.write(`
+        router.get('/', function(req, res) {
+          res.render('pages/${data[i].route}');
+        });
+      `);
+    }
+
     writeStream.write(`
       router.get('/${data[i].route}', function(req, res) {
         res.render('pages/${data[i].route}');
@@ -141,6 +158,8 @@ function createListingPage(data) {
           let ontologyValues = '${ontologyValues.join(",")}';
           ontologyKeys = ontologyKeys.split(",");
           ontologyValues = ontologyValues.split(",");
+
+          let taskName = '${data.name}';
           let routeType = '${routeType}';
           let userTask = '${data.userTask.name}';
           let userTaskEvent = '${userTaskEvent}';
@@ -152,7 +171,7 @@ function createListingPage(data) {
             if(!data){
               data = []
             }
-            data.push({ name: item, price });
+            data.push({ name: item, price: parseInt(price.split(" ")[1]) });
             localStorage.setItem('cart', JSON.stringify(data));
 
             SnackBar({
@@ -325,6 +344,35 @@ function createPages(data) {
   }
 }
 
+function createMenuHeaderItems(data){
+  const writeStream = fs.createWriteStream(
+    `views/partials/menu-header-partials.ejs`
+  );
+
+  let template = "";
+  for(let i=0; i<data.length; i++){
+    template += `
+      <a class="header-link" href="${data[i].link}">
+        <span class="material-symbols-outlined head-icon">
+          shopping_cart
+        </span>
+      </a>
+    `;
+  }
+
+  const page = `
+    <div class="account">
+    <span class="icon material-symbols-outlined head-icon">
+      account_circle
+    </span>
+    ${template}
+    </div> 
+  `;
+
+  writeStream.write(page);
+  writeStream.end();
+}
+
 function addPlainFields(data) {
   data.splice(0, 1);
 
@@ -368,14 +416,16 @@ fetchClasses().then((res) => {
     parser.parseString(data, (err, result) => {
       const { definitions } = result;
       const { process } = definitions;
-      const { task, serviceTask, userTask, textAnnotation, association } = process[0];
-
+      const { task, serviceTask, userTask, textAnnotation, association, sequenceFlow } = process[0];
+      
       /* Refine Tasks */
       const refinedTasks = refineTasks(task);
       const refinedServiceTasks = refineServiceTasks(serviceTask);
       const refinedUserTasks = refineUserTasks(userTask);
       const refinedTextAnnotations = refineTextAnnotations(textAnnotation);
       const refinedAssociations = refineAssociations(association);
+      let refinedMenuSequenceFlow = refineMenuSequenceFlow(sequenceFlow);
+      refinedMenuSequenceFlow = refinedMenuSequenceFlow.filter((item) => item.name);
 
       /* Merge Anootation with tasks */
       const updatedTextAnnotations = values(merge(keyBy(refinedTextAnnotations, 'id'), keyBy(refinedAssociations, 'id'))).map((item) => ({ source: item.source, text: item.text }));
@@ -412,6 +462,7 @@ fetchClasses().then((res) => {
           name: refinedServiceTasks[i].name
         }
       }
+      
 
       for (let i = 0; i < annotatedTasks.length; i++) {
         for (let j = 0; j < annotatedTasks[i].outgoing.length; j++) {
@@ -425,12 +476,35 @@ fetchClasses().then((res) => {
         }
       }
 
-      console.log(chalk.bgGreen("Result Consolidated"));
       const finalTaskList = annotatedTasks.reverse();
-      console.log(chalk.bgGreen("Parsing BPMN File Complete "));
       const results = consolidateResults(finalTaskList);
+      console.log(chalk.bgGreen("Result Consolidated"));
 
+      /* Merge Menu Items with tasks */
+      let menuItems = [];
+      for (let i = 0; i < refinedMenuSequenceFlow.length; i++) {
+        menuItems[refinedMenuSequenceFlow[i].id] = {
+          name: refinedMenuSequenceFlow[i].name,
+          target: refinedMenuSequenceFlow[i].target
+        }
+      }
 
+      let taskIds = results.map((item) => item.id)
+
+      for (let i = 0; i < results.length; i++) {
+        for (let j = 0; j < results[i].outgoing.length; j++) {
+          const flowElement = results[i].outgoing[j];   
+          if (menuItems[flowElement]) {
+            results[i].menuItem = {
+              ...menuItems[flowElement],
+              link: results[taskIds.indexOf(results[i].id)]?.link
+            }
+          }
+        }
+      }
+      menuItems = results.map((item) => (item.menuItem)).filter((item) => item);
+      console.log(chalk.bgGreen("Parsing BPMN File Complete "));
+      
       /* Remove unwanted fields */
       for(let i=0; i<results.length; i++){
         delete results[i].id;
@@ -439,6 +513,7 @@ fetchClasses().then((res) => {
 
       /* Create Routes */
       createRouteFiles(results);
+      createMenuHeaderItems(menuItems);
       createPages(results);
     })
   });
