@@ -16,12 +16,13 @@
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-            SELECT DISTINCT ?individual ?label ?comment
+            SELECT DISTINCT ?individual ?label ?comment ?price
             WHERE {
                 ?individual rdf:type <${ontologyValues[ontologyKeys.indexOf(ontologyName)]}>.
                 OPTIONAL {?individual rdf:type owl:NamedIndividual}
                 OPTIONAL {?individual rdfs:label ?label}
                 OPTIONAL {?individual rdfs:comment ?comment}
+                OPTIONAL {?individual rdfs:isDefinedBy ?price}
             }
             `,
         };
@@ -38,10 +39,12 @@
                 data.push({
                     name: bindings[i].label.value,
                     picture: bindings[i].comment.value,
-                    id: bindings[i].individual.value
+                    id: bindings[i].individual.value,
+                    price: bindings[i]?.price?.value
                 });
             }
 
+            console.log(data);
             return data;
         })
         .catch(function (error) {
@@ -60,10 +63,13 @@
             for (let i=0; i < response.length; i++) {
                     template += `<div class="product-container">
                     <div class="product-image" style='background-image: url("${response[i].picture}")'></div>
-                    <div class="product-text">${response[i].name}</div>`;
+                    <div class="product-info">
+                    <div class="product-text">${response[i].name}</div>
+                    <div class="product-price">${response[i].price}</div>
+                    </div>`;
 
                     if(routeType === "listing" && userTask){
-                        template += `<button type="button" onClick="${userTaskEvent}()" class="button-style btn btn-warning btn-block">${userTask}</button>`;
+                        template += `<button type="button" onClick="${userTaskEvent}('${response[i].name}', '${response[i].price}')" class="button-style btn btn-warning btn-block">${userTask}</button>`;
                     }
                         
                     template += '</div>';

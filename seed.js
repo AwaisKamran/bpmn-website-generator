@@ -6,7 +6,6 @@ const {
   fetchDataPropertiesByOntologyClassName,
   fetchIndividualsByOntologyClassName,
   fetchSubClassesByOntologyClassName,
-  fetchIndividualsPropertiesByOntologyClassName,
 } = require("./utility/sparql");
 
 const xml2js = require("xml2js");
@@ -148,12 +147,19 @@ function createListingPage(data) {
         </script>
 
         <script>
-          function ${userTaskEvent}(){
+          function ${userTaskEvent}(item, price){
+            let data = JSON.parse(localStorage.getItem('cart'));
+            if(!data){
+              data = []
+            }
+            data.push({ name: item, price });
+            localStorage.setItem('cart', JSON.stringify(data));
+
             SnackBar({
               message: 'User Action Executed - ${data.userTask.name}',
               status: "success",
               icon: "plus",
-              position: "br"
+              fixed: true
             });
           }
         </script>
@@ -227,7 +233,8 @@ function createCategoryPage(data) {
             <%- include('../partials/header'); %>
           </header>
           <main>
-            <div class="jumbotron">
+
+          <div class="jumbotron">
               ${template}
             </div>
           </main>
@@ -245,12 +252,27 @@ function createCategoryPage(data) {
 }
 
 function createActionPage(res, data) {
-  let template = "<div class='main-container'>";
+  let template = `<button class='button-back' onclick='history.back()'>
+  <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
+  </button>`;
+  template += "<div class='main-container'>";
 
   for (let i = 0; i < res.length; i++) {
-    template += `<input class="form-control" type="text" placeholder='${res[i]}' /><br/>`;
+    template += `<div class="form-group">`;
+    if(i=== 0){
+      template += `<label for="exampleInputEmail1">${res[i]}</label>`
+    }
+
+    template += `<input class="form-control" type="text" placeholder='Enter Your ${res[i]}' />`;
+
+    if(i===0){
+      template += `<small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small>`;
+    }
+
+    template += `</div>`
   }
-  template += `<button type="button" class="form-control btn btn-primary">Submit</button></div>`;
+
+  template += `<br/><button type="button" class="form-control btn btn-primary">Submit</button></div>`;
 
   const writeStream = fs.createWriteStream(
     `views/pages/${data.route}.ejs`
