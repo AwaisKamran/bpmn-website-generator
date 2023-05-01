@@ -4,6 +4,7 @@ const BASE_LINK = `http://localhost:${process.env.BASE}/`;
 const PATH_TO_BPMN_FILE = process.env.ECOMMERCE;
 const LISTING = "listing";
 const ACTION = "action";
+const LOCAL = "local";
 const CATEGORY = "category";
 const GET = "get";
 const POST = "post";
@@ -15,7 +16,8 @@ module.exports = {
   ACTION,
   GET,
   POST,
-  BASE_LINK
+  BASE_LINK,
+  LOCAL
 };
 
 // Copy .env file

@@ -1,9 +1,8 @@
 .main-container{
   width: 500px;
-  margin-left: auto;
-  margin-right: auto;
   background-color: #fafafa;
   padding: 30px;
+  margin-left: 50px;
 }
 
 .flex{
@@ -229,4 +228,10 @@
 
 .quantity-number{
   font-weight: 500;
+}
+
+.quantity-heading{
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 24px;
 }

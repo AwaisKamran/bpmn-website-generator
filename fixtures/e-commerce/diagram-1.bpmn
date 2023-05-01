@@ -27,16 +27,25 @@
       <incoming>Flow_0co991s</incoming>
       <outgoing>Flow_0azfjkq</outgoing>
       <outgoing>Flow_0uy771x</outgoing>
+      <dataOutputAssociation id="DataOutputAssociation_0wqsjdp">
+        <targetRef>DataStoreReference_16g47js</targetRef>
+      </dataOutputAssociation>
     </task>
     <task id="Activity_16iysrx" name="Enter Address">
       <incoming>Flow_0ivei6q</incoming>
       <outgoing>Flow_0co991s</outgoing>
       <outgoing>Flow_08yq7k6</outgoing>
+      <dataOutputAssociation id="DataOutputAssociation_1ow9tal">
+        <targetRef>DataStoreReference_16g47js</targetRef>
+      </dataOutputAssociation>
     </task>
     <task id="Activity_0z78hjk" name="Enter Person">
       <incoming>Flow_0btguh1</incoming>
       <outgoing>Flow_0ivei6q</outgoing>
       <outgoing>Flow_14u9tl7</outgoing>
+      <dataOutputAssociation id="DataOutputAssociation_1867q9e">
+        <targetRef>DataStoreReference_16g47js</targetRef>
+      </dataOutputAssociation>
     </task>
     <userTask id="Activity_00f274m" name="Submit">
       <incoming>Flow_14u9tl7</incoming>
@@ -65,6 +74,9 @@
       <outgoing>Flow_1ta0oxm</outgoing>
       <outgoing>Flow_0rq6hru</outgoing>
       <outgoing>Flow_1es1oiz</outgoing>
+      <dataOutputAssociation id="DataOutputAssociation_1qy190d">
+        <targetRef>DataStoreReference_16g47js</targetRef>
+      </dataOutputAssociation>
     </task>
     <task id="Task_1hcentk" name="View Category">
       <incoming>SequenceFlow_0h21x7r</incoming>
@@ -90,7 +102,6 @@
     <serviceTask id="Activity_1pnbghv" name="Post Order">
       <incoming>Flow_0d6l7zd</incoming>
     </serviceTask>
-    <dataStoreReference id="DataStoreReference_16g47js" name="local" />
     <sequenceFlow id="SequenceFlow_0h21x7r" sourceRef="StartEvent_1y45yut" targetRef="Task_1hcentk" />
     <sequenceFlow id="Flow_1dwpiyh" sourceRef="Activity_1u7had2" targetRef="Event_1nf9r4a" />
     <sequenceFlow id="Flow_0azfjkq" sourceRef="Activity_0184qbs" targetRef="Activity_1u7had2" />
@@ -109,6 +120,7 @@
     <sequenceFlow id="Flow_1es1oiz" sourceRef="Activity_1jk29tv" targetRef="Activity_0bn0ksi" />
     <sequenceFlow id="Flow_08kq81p" sourceRef="Task_1hcentk" targetRef="Activity_13cjbz7" />
     <sequenceFlow id="Flow_0wrppib" sourceRef="Task_1hcentk" targetRef="Activity_0c0jgd0" />
+    <dataStoreReference id="DataStoreReference_16g47js" name="local" />
     <textAnnotation id="TextAnnotation_0xm4inb">
       <text>Action Page</text>
     </textAnnotation>
@@ -291,9 +303,9 @@
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="DataStoreReference_16g47js_di" bpmnElement="DataStoreReference_16g47js">
-        <omgdc:Bounds x="1015" y="115" width="50" height="50" />
+        <omgdc:Bounds x="855" y="145" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="1029" y="172" width="23" height="14" />
+          <omgdc:Bounds x="869" y="202" width="23" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_19krn8q_di" bpmnElement="Association_19krn8q">
@@ -483,16 +495,32 @@
         <omgdi:waypoint x="1242" y="1080" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="DataInputAssociation_041sjw7_di" bpmnElement="DataInputAssociation_041sjw7">
-        <omgdi:waypoint x="1063" y="165" />
-        <omgdi:waypoint x="1333" y="453" />
+        <omgdi:waypoint x="905" y="186" />
+        <omgdi:waypoint x="1332" y="455" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="DataInputAssociation_1ic8swx_di" bpmnElement="DataInputAssociation_1ic8swx">
-        <omgdi:waypoint x="1017" y="165" />
-        <omgdi:waypoint x="747" y="453" />
+        <omgdi:waypoint x="868" y="195" />
+        <omgdi:waypoint x="744" y="451" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1s5zr1o_di" bpmnElement="Flow_1s5zr1o">
         <omgdi:waypoint x="1460" y="660" />
         <omgdi:waypoint x="1460" y="870" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1qy190d_di" bpmnElement="DataOutputAssociation_1qy190d">
+        <omgdi:waypoint x="572" y="451" />
+        <omgdi:waypoint x="855" y="184" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1867q9e_di" bpmnElement="DataOutputAssociation_1867q9e">
+        <omgdi:waypoint x="871" y="450" />
+        <omgdi:waypoint x="880" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1ow9tal_di" bpmnElement="DataOutputAssociation_1ow9tal">
+        <omgdi:waypoint x="1020" y="450" />
+        <omgdi:waypoint x="895" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0wqsjdp_di" bpmnElement="DataOutputAssociation_0wqsjdp">
+        <omgdi:waypoint x="1169" y="450" />
+        <omgdi:waypoint x="905" y="194" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

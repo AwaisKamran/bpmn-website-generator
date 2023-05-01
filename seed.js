@@ -10,7 +10,7 @@ const {
 
 const xml2js = require("xml2js");
 const chalk = require("chalk");
-const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK } = require("./utility/constants");
+const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LCOAL, LOCAL } = require("./utility/constants");
 
 require("dotenv").config();
 
@@ -26,7 +26,8 @@ function refineTasks(tasks) {
     id: item.$.id,
     name: item.$.name,
     outgoing: item.outgoing,
-    dataInputAssociation: item.dataInputAssociation
+    dataInputAssociation: item.dataInputAssociation,
+    dataOutputAssociation: item.dataOutputAssociation
   }));
   return refinedTasks;
 }
@@ -171,7 +172,9 @@ function createListingPage(data) {
           ontologyValues = ontologyValues.split(",");
 
           let taskName = '${data.name}';
+          let taskNameObject = '${data.name.split(" ")[1].toLowerCase()}'
           let dataInputSource = '${data?.dataInputAssociation?.type}';
+          let dataOutputSource = '${data?.dataOutputAssociation?.type}';
           let routeType = '${routeType}';
           let userTask = '${data.userTask.name}';
           let userTaskEvent = '${userTaskEvent}';
@@ -180,7 +183,7 @@ function createListingPage(data) {
 
         <script>
           function ${userTaskEvent}(item, price, picture){
-            if(item && price && picture && dataInputSource === 'undefined'){
+            if(item && price && picture && dataInputSource !== "local" && dataOutputSource === "local"){
               let data = JSON.parse(localStorage.getItem('cart'));
               if(!data){
                 data = []
@@ -196,7 +199,6 @@ function createListingPage(data) {
               });
             }
             else{ 
-              // localStorage Case
               window.location.href = link;
             }
           }
@@ -321,6 +323,8 @@ function createCategoryPage(data) {
 }
 
 function createActionPage(res, data) {
+  const {name, className, dataOutputAssociation, link, route, routeType, userTask} = data;
+
   let template = `<button class='button-back' onclick='history.back()'>
   <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
   </button>`;
@@ -331,17 +335,14 @@ function createActionPage(res, data) {
     if(i=== 0){
       template += `<label for="exampleInputEmail1">${res[i]}</label>`
     }
-
     template += `<input class="form-control" type="text" placeholder='Enter Your ${res[i]}' />`;
-
     if(i===0){
       template += `<small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small>`;
     }
-
     template += `</div>`
   }
 
-  template += `<br/><button type="button" class="form-control btn btn-primary">Submit</button></div>`;
+  template += `<br/><button type="button" onClick="${route}()" class="form-control btn btn-primary">${userTask.name}</button></div>`;
 
   const writeStream = fs.createWriteStream(
     `views/pages/${data.route}.ejs`
@@ -352,6 +353,18 @@ function createActionPage(res, data) {
   <html lang="en">
     <head>
       <%- include('../partials/head'); %>
+
+      <script>
+        let routeType = '${routeType}';
+        let userTask = '${userTask.name}';
+        let dataOutputAssociation = '${dataOutputAssociation.type}'
+
+        function ${route}(){
+          if(routeType === '${ACTION}' && userTask !== 'undefined' &&  dataOutputAssociation === '${LOCAL}'){
+            window.location.href = '${link}'
+          }
+        }
+      </script>
     </head>
 
     <body>
@@ -486,9 +499,9 @@ fetchClasses().then((res) => {
         }
       }
 
-      /* Merge Anootation with tasks */
+      /* Merge Annotation with tasks */
       const updatedTextAnnotations = values(merge(keyBy(refinedTextAnnotations, 'id'), keyBy(refinedAssociations, 'id'))).map((item) => ({ source: item.source, text: item.text }));
-      const annotatedTasks = values(merge(keyBy(refinedTasks, 'id'), keyBy(updatedTextAnnotations, 'source'))).map((item) => ({
+      let annotatedTasks = values(merge(keyBy(refinedTasks, 'id'), keyBy(updatedTextAnnotations, 'source'))).map((item) => ({
         id: item.id,
         name: item.name,
         outgoing: item.outgoing,
@@ -496,15 +509,20 @@ fetchClasses().then((res) => {
           id: item.$.id, 
           source: item.sourceRef, 
         })),
+        dataOutputAssociation: item.dataOutputAssociation?.map((item) => ({ 
+          id: item.$.id, 
+          target: item.targetRef, 
+        })),
         text: item.text.split(" ")[0]
       }));
 
-      /* Add Data Store Type */
+      /* Add Data Store Input Type */
       for (let i = 0; i < annotatedTasks.length; i++) {
         if(annotatedTasks[i].dataInputAssociation){
           for (let j = 0; j < annotatedTasks[i].dataInputAssociation.length; j++) {
             const id = annotatedTasks[i].dataInputAssociation[j].source;
             annotatedTasks[i].dataInputAssociation[j].type = dataStore[id]?.name;
+            delete annotatedTasks[i].dataInputAssociation[j].source;
           }
         }
       }
@@ -512,6 +530,29 @@ fetchClasses().then((res) => {
       for (let i = 0; i < annotatedTasks.length; i++) {
         if(annotatedTasks[i].dataInputAssociation){
           annotatedTasks[i].dataInputAssociation = annotatedTasks[i].dataInputAssociation[0]
+        }
+        else{
+          delete annotatedTasks[i].dataInputAssociation;
+        }
+      }
+
+       /* Add Data Store Output Type */
+       for (let i = 0; i < annotatedTasks.length; i++) {
+        if(annotatedTasks[i].dataOutputAssociation){
+          for (let j = 0; j < annotatedTasks[i].dataOutputAssociation.length; j++) {
+            const id = annotatedTasks[i].dataOutputAssociation[j].target[0];
+            annotatedTasks[i].dataOutputAssociation[j].type = dataStore[id]?.name;
+            delete annotatedTasks[i].dataOutputAssociation[j].target;
+          }
+        }
+      }
+
+      for (let i = 0; i < annotatedTasks.length; i++) {
+        if(annotatedTasks[i].dataOutputAssociation){
+          annotatedTasks[i].dataOutputAssociation = annotatedTasks[i].dataOutputAssociation[0]
+        }
+        else{
+          delete annotatedTasks[i].dataOutputAssociation;
         }
       }
 
