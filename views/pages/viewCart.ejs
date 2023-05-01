@@ -18,23 +18,29 @@
           let routeType = 'listing';
           let userTask = 'Checkout';
           let userTaskEvent = 'checkout';
+          let link = 'http://localhost:8000/enterPerson';
         </script>
 
         <script>
           function checkout(item, price, picture){
-            let data = JSON.parse(localStorage.getItem('cart'));
-            if(!data){
-              data = []
+            if(item && price && picture && dataInputSource === 'undefined'){
+              let data = JSON.parse(localStorage.getItem('cart'));
+              if(!data){
+                data = []
+              }
+              data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
+              localStorage.setItem('cart', JSON.stringify(data));
+  
+              SnackBar({
+                message: 'User Action Executed - Checkout',
+                status: "success",
+                icon: "plus",
+                fixed: true
+              });
             }
-            data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
-            localStorage.setItem('cart', JSON.stringify(data));
-
-            SnackBar({
-              message: 'User Action Executed - Checkout',
-              status: "success",
-              icon: "plus",
-              fixed: true
-            });
+            else{
+              window.location.href = link;
+            }
           }
 
           function removeItem(index){

@@ -209,6 +209,7 @@
 .total-items{
   width: 100%;
   font-weight: 700;
+  margin-bottom: 20px;
 }
 
 .quantity{

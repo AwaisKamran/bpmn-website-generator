@@ -18,23 +18,29 @@
           let routeType = 'listing';
           let userTask = 'Post';
           let userTaskEvent = 'post';
+          let link = 'undefined';
         </script>
 
         <script>
           function post(item, price, picture){
-            let data = JSON.parse(localStorage.getItem('cart'));
-            if(!data){
-              data = []
+            if(item && price && picture && dataInputSource === 'undefined'){
+              let data = JSON.parse(localStorage.getItem('cart'));
+              if(!data){
+                data = []
+              }
+              data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
+              localStorage.setItem('cart', JSON.stringify(data));
+  
+              SnackBar({
+                message: 'User Action Executed - Post',
+                status: "success",
+                icon: "plus",
+                fixed: true
+              });
             }
-            data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
-            localStorage.setItem('cart', JSON.stringify(data));
-
-            SnackBar({
-              message: 'User Action Executed - Post',
-              status: "success",
-              icon: "plus",
-              fixed: true
-            });
+            else{
+              window.location.href = link;
+            }
           }
 
           function removeItem(index){

@@ -3,6 +3,22 @@
       <html lang="en">
         <head>
           <%- include('../partials/head'); %>
+
+          <script>
+            var images = [];
+            function preload() {
+                for (var i = 0; i < arguments.length; i++) {
+                    images[i] = new Image();
+                    images[i].src = preload.arguments[i];
+                }
+            }
+            
+            preload(
+                "hhttps://media-cldnry.s-nbcnews.com/image/upload/newscms/2023_12/3599096/230320-toothpaste-kb-2x1.jpg",
+                "https://hips.hearstapps.com/hmg-prod/images/gettyimages-904676768-1654020745.png",
+                "https://roadmap-tech.com/wp-content/uploads/2013/12/AdobeStock_170805293.jpeg"
+            )
+          </script>
         </head>
   
         <body>

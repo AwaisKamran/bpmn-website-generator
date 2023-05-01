@@ -18,23 +18,29 @@
           let routeType = 'listing';
           let userTask = 'Select Product';
           let userTaskEvent = 'selectProduct';
+          let link = 'http://localhost:8000/viewCart?id=';
         </script>
 
         <script>
           function selectProduct(item, price, picture){
-            let data = JSON.parse(localStorage.getItem('cart'));
-            if(!data){
-              data = []
+            if(item && price && picture && dataInputSource === 'undefined'){
+              let data = JSON.parse(localStorage.getItem('cart'));
+              if(!data){
+                data = []
+              }
+              data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
+              localStorage.setItem('cart', JSON.stringify(data));
+  
+              SnackBar({
+                message: 'User Action Executed - Select Product',
+                status: "success",
+                icon: "plus",
+                fixed: true
+              });
             }
-            data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
-            localStorage.setItem('cart', JSON.stringify(data));
-
-            SnackBar({
-              message: 'User Action Executed - Select Product',
-              status: "success",
-              icon: "plus",
-              fixed: true
-            });
+            else{
+              window.location.href = link;
+            }
           }
 
           function removeItem(index){

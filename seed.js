@@ -148,7 +148,8 @@ function createRouteFiles(data) {
 }
 
 function createListingPage(data) {
-  const { routeType, route} = data;
+  const { routeType, route, link} = data;
+
   const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
   const ontologyValues = [...Object.values(ONTOLOGY_CLASSES)];
   const ontologyKeys = [...Object.keys(ONTOLOGY_CLASSES)];
@@ -174,23 +175,30 @@ function createListingPage(data) {
           let routeType = '${routeType}';
           let userTask = '${data.userTask.name}';
           let userTaskEvent = '${userTaskEvent}';
+          let link = '${link}';
         </script>
 
         <script>
           function ${userTaskEvent}(item, price, picture){
-            let data = JSON.parse(localStorage.getItem('cart'));
-            if(!data){
-              data = []
+            if(item && price && picture && dataInputSource === 'undefined'){
+              let data = JSON.parse(localStorage.getItem('cart'));
+              if(!data){
+                data = []
+              }
+              data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
+              localStorage.setItem('cart', JSON.stringify(data));
+  
+              SnackBar({
+                message: 'User Action Executed - ${data.userTask.name}',
+                status: "success",
+                icon: "plus",
+                fixed: true
+              });
             }
-            data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
-            localStorage.setItem('cart', JSON.stringify(data));
-
-            SnackBar({
-              message: 'User Action Executed - ${data.userTask.name}',
-              status: "success",
-              icon: "plus",
-              fixed: true
-            });
+            else{ 
+              // localStorage Case
+              window.location.href = link;
+            }
           }
 
           function removeItem(index){
@@ -271,6 +279,22 @@ function createCategoryPage(data) {
       <html lang="en">
         <head>
           <%- include('../partials/head'); %>
+
+          <script>
+            var images = [];
+            function preload() {
+                for (var i = 0; i < arguments.length; i++) {
+                    images[i] = new Image();
+                    images[i].src = preload.arguments[i];
+                }
+            }
+            
+            preload(
+                "hhttps://media-cldnry.s-nbcnews.com/image/upload/newscms/2023_12/3599096/230320-toothpaste-kb-2x1.jpg",
+                "https://hips.hearstapps.com/hmg-prod/images/gettyimages-904676768-1654020745.png",
+                "https://roadmap-tech.com/wp-content/uploads/2013/12/AdobeStock_170805293.jpeg"
+            )
+          </script>
         </head>
   
         <body>

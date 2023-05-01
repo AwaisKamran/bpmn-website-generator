@@ -49,6 +49,11 @@
         template += `<div class='number-of-items display-block'>Total No. Of Items - ${counter} Items</div>`;
         template += `<div class='total-items display-block'>Total Amount - Rs. ${total}</div>`;
 
+
+        if(routeType === "listing" && userTask){
+            template += `<button type="button" onClick="${userTaskEvent}()" class="button-style btn btn-warning btn-block">${userTask}</button>`;
+        }
+
         template += '</div>'; 
 
         if(document.getElementById("container")){
@@ -112,21 +117,20 @@
             template = `<button class='button-back' onclick='history.back()'>
             <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
             </button>`;
-             template += "<div class='flex-container'>";
+            template += "<div class='flex-container'>";
 
             for (let i=0; i < response.length; i++) {
-                    template += `<div class="product-container">
-                    <div class="product-image" style='background-image: url("${response[i].picture}")'></div>
-                    <div class="product-info">
-                        <div class="product-text">${response[i].name}</div>
-                        <div class="product-price">${response[i].price}</div>
-                    </div>`;
+                template += `<div class="product-container">
+                <div class="product-image" style='background-image: url("${response[i].picture}")'></div>
+                <div class="product-info">
+                    <div class="product-text">${response[i].name}</div>
+                    <div class="product-price">${response[i].price}</div>
+                </div>`;
 
-                    if(routeType === "listing" && userTask){
-                        template += `<button type="button" onClick="${userTaskEvent}('${response[i].name.replace(/\'/g, '')}', '${response[i].price}', '${response[i].picture}')" class="button-style btn btn-warning btn-block">${userTask}</button>`;
-                    }
-                        
-                    template += '</div>';
+                if(routeType === "listing" && userTask){
+                    template += `<button type="button" onClick="${userTaskEvent}('${response[i].name.replace(/\'/g, '')}', '${response[i].price}', '${response[i].picture}')" class="button-style btn btn-warning btn-block">${userTask}</button>`;
+                }
+                template += '</div>';
             }
 
             template += '</div>';
