@@ -12,8 +12,8 @@
         function enterPayment(event){
           const form = document.querySelector('form');
           const data = Object.fromEntries(new FormData(form).entries());
-          console.log(data);
           if(routeType === 'action' && userTask !== 'undefined' &&  dataOutputAssociation === 'local'){
+            localStorage.removeItem("Payment");
             localStorage.setItem("Payment", JSON.stringify(data))
             window.location.href = 'http://localhost:8000/reviewOrder?id=';
           }

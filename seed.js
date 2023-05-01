@@ -333,6 +333,7 @@ function createActionPage(res, data) {
   let template = `<button class='button-back' onclick='history.back()'>
   <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
   </button>`;
+  
   template += `
     <div class='main-container'>
     <form onsubmit="return false">
@@ -341,9 +342,9 @@ function createActionPage(res, data) {
   for (let i = 0; i < res.length; i++) {
     template += `<div class="form-group">`;
     if(i=== 0){
-      template += `<label for="exampleInputEmail1">${res[i]}</label>`
+      template += `<label for="exampleInputEmail1">${res[i].label}</label>`
     }
-    template += `<input class="form-control" name="${res[i]}" type="text" placeholder='Enter Your ${res[i]}' />`;
+    template += `<input class="form-control" name="${res[i].label}" type="text" placeholder='Enter Your ${res[i].label}' />`;
     if(i===0){
       template += `<small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small>`;
     }
@@ -376,6 +377,7 @@ function createActionPage(res, data) {
           const form = document.querySelector('form');
           const data = Object.fromEntries(new FormData(form).entries());
           if(routeType === '${ACTION}' && userTask !== 'undefined' &&  dataOutputAssociation === '${LOCAL}'){
+            localStorage.removeItem("${className}");
             localStorage.setItem("${className}", JSON.stringify(data))
             window.location.href = '${link}';
           }

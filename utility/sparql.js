@@ -128,12 +128,12 @@ function fetchDataPropertiesByOntologyClassName(ontologyName) {
       PREFIX owl: <http://www.w3.org/2002/07/owl#> 
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
       
-      SELECT DISTINCT ?class ?label ?description  
+      SELECT DISTINCT ?class ?label ?range  
       WHERE { 
         ?class rdfs:domain <${ONTOLOGY_CLASSES[ontologyName]}> . 
         ?class rdf:type owl:DatatypeProperty. 
         OPTIONAL { ?class rdfs:label ?label} 
-        OPTIONAL { ?label rdfs:comment ?description} 
+        OPTIONAL { ?class rdfs:range ?range}  
       } 
         
       LIMIT 25`,
@@ -142,14 +142,18 @@ function fetchDataPropertiesByOntologyClassName(ontologyName) {
   return axios
     .post(ONTOLOGY_ENDPOINT, postData, axiosConfig)
     .then(function (response) {
+
       let features = [];
       const { results } = response.data;
       const { bindings } = results;
 
       for (let i = 0; i < bindings.length; i++) {
-        features.push(bindings[i].label.value);
+        features.push({
+          label: bindings[i].label?.value,
+          range: bindings[i].range?.value.split('#')[1]
+        });
       }
-
+      
       return features;
     })
     .catch(function (error) {
