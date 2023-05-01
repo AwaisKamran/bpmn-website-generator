@@ -203,19 +203,24 @@ function createListingPage(data) {
             }
           }
 
-          function removeItem(index){
+          function removeItem(name){
             let data = JSON.parse(localStorage.getItem('cart'));
-            data.splice(index, 1);
-            localStorage.setItem('cart', JSON.stringify(data));
+            const index = data.map(item => item.name).indexOf(name);
 
-            SnackBar({
-              message: 'User Action Executed - Remove',
-              status: "danger",
-              icon: "danger",
-              fixed: true
-            });
+            if(index >= 0){
+              data.splice(index, 1);
+              localStorage.setItem('cart', JSON.stringify(data));
 
-            fetchData();
+              SnackBar({
+                message: 'User Action Executed - Remove',
+                status: "danger",
+                icon: "danger",
+                fixed: true
+              });
+
+
+              fetchData();
+            }
           }
         </script>
 

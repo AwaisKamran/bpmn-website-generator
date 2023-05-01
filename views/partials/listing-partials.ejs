@@ -39,7 +39,7 @@
                         <div class="price">${data[i].price *  quantifiedData[data[i].name].length}</div>
                     </div> 
                     <div class="quantity">x${quantifiedData[data[i].name].length}</div>
-                    <div class="remove" onClick="removeItem(${i})">
+                    <div class="remove" onClick="removeItem('${data[i].name}')">
                         <span class="material-symbols-outlined">close</span>
                     </div>
                 </div>
