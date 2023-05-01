@@ -46,11 +46,8 @@
           }
 
           function removeItem(name){
-            alert(name);
             let data = JSON.parse(localStorage.getItem('cart'));
             const index = data.map(item => item.name).indexOf(name);
-            console.log(data);
-            console.log(index);
 
             if(index >= 0){
               data.splice(index, 1);

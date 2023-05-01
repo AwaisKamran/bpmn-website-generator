@@ -9,10 +9,15 @@
         let userTask = 'Submit';
         let dataOutputAssociation = 'local'
 
-        function enterPayment(){
+        function enterPayment(event){
+          const form = document.querySelector('form');
+          const data = Object.fromEntries(new FormData(form).entries());
+          console.log(data);
           if(routeType === 'action' && userTask !== 'undefined' &&  dataOutputAssociation === 'local'){
-            window.location.href = 'http://localhost:8000/reviewOrder?id='
+            localStorage.setItem("Payment", JSON.stringify(data))
+            window.location.href = 'http://localhost:8000/reviewOrder?id=';
           }
+          return false;
         }
       </script>
     </head>
@@ -25,7 +30,15 @@
         <div class="jumbotron">
           <button class='button-back' onclick='history.back()'>
   <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
-  </button><div class='main-container'><div class="form-group"><label for="exampleInputEmail1">Name</label><input class="form-control" type="text" placeholder='Enter Your Name' /><small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small></div><br/><button type="button" onClick="enterPayment()" class="form-control btn btn-primary">Submit</button></div>
+  </button>
+    <div class='main-container'>
+    <form onsubmit="return false">
+  <div class="form-group"><label for="exampleInputEmail1">Name</label><input class="form-control" name="Name" type="text" placeholder='Enter Your Name' /><small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small></div>
+    <br/>
+      
+    <input type="submit" onClick="enterPayment(this)" class="form-control btn btn-primary" value="Submit" />
+    </form>
+    </div>
         </div>
       </main>
       <footer>

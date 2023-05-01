@@ -333,21 +333,29 @@ function createActionPage(res, data) {
   let template = `<button class='button-back' onclick='history.back()'>
   <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
   </button>`;
-  template += "<div class='main-container'>";
+  template += `
+    <div class='main-container'>
+    <form onsubmit="return false">
+  `;
 
   for (let i = 0; i < res.length; i++) {
     template += `<div class="form-group">`;
     if(i=== 0){
       template += `<label for="exampleInputEmail1">${res[i]}</label>`
     }
-    template += `<input class="form-control" type="text" placeholder='Enter Your ${res[i]}' />`;
+    template += `<input class="form-control" name="${res[i]}" type="text" placeholder='Enter Your ${res[i]}' />`;
     if(i===0){
       template += `<small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small>`;
     }
     template += `</div>`
   }
 
-  template += `<br/><button type="button" onClick="${route}()" class="form-control btn btn-primary">${userTask.name}</button></div>`;
+  template += `
+    <br/>
+      
+    <input type="submit" onClick="${route}(this)" class="form-control btn btn-primary" value="${userTask.name}" />
+    </form>
+    </div>`;
 
   const writeStream = fs.createWriteStream(
     `views/pages/${data.route}.ejs`
@@ -364,10 +372,14 @@ function createActionPage(res, data) {
         let userTask = '${userTask.name}';
         let dataOutputAssociation = '${dataOutputAssociation.type}'
 
-        function ${route}(){
+        function ${route}(event){
+          const form = document.querySelector('form');
+          const data = Object.fromEntries(new FormData(form).entries());
           if(routeType === '${ACTION}' && userTask !== 'undefined' &&  dataOutputAssociation === '${LOCAL}'){
-            window.location.href = '${link}'
+            localStorage.setItem("${className}", JSON.stringify(data))
+            window.location.href = '${link}';
           }
+          return false;
         }
       </script>
     </head>
