@@ -119,7 +119,7 @@
       <text>Action Page</text>
     </textAnnotation>
     <textAnnotation id="TextAnnotation_0emoxta">
-      <text>Action Page</text>
+      <text>Listing Page</text>
     </textAnnotation>
     <textAnnotation id="TextAnnotation_1h48oyy">
       <text>Listing Page</text>
@@ -200,7 +200,7 @@
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0emoxta_di" bpmnElement="TextAnnotation_0emoxta">
-        <omgdc:Bounds x="1330" y="400" width="100" height="30" />
+        <omgdc:Bounds x="1330" y="400" width="99.99411856963613" height="29.995294855708906" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1h48oyy_di" bpmnElement="TextAnnotation_1h48oyy">

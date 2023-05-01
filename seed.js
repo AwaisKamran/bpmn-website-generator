@@ -25,7 +25,8 @@ function refineTasks(tasks) {
   const refinedTasks = tasks.map((item) => ({
     id: item.$.id,
     name: item.$.name,
-    outgoing: item.outgoing
+    outgoing: item.outgoing,
+    dataInputAssociation: item.dataInputAssociation
   }));
   return refinedTasks;
 }
@@ -72,6 +73,14 @@ function refineMenuSequenceFlow(tasks){
     target: item.$.targetRef
   }));
   return refinedMenuSequenceFlow;
+}
+
+function refineDataStoreReference(task){
+  const refinedDataStoreData = task.map((item) => ({
+    id: item.$.id,
+    name: item.$.name,
+  }));
+  return refinedDataStoreData;
 }
 
 function consolidateResults(data) {
@@ -151,6 +160,7 @@ function createListingPage(data) {
       <head>
         <%- include('../partials/head'); %>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         
         <script>
           const ONTOLOGY_ENDPOINT = '${process.env.ECOMMERCE_ONTOLOGY_ENDPOINT}';
@@ -160,18 +170,19 @@ function createListingPage(data) {
           ontologyValues = ontologyValues.split(",");
 
           let taskName = '${data.name}';
+          let dataInputSource = '${data?.dataInputAssociation?.type}';
           let routeType = '${routeType}';
           let userTask = '${data.userTask.name}';
           let userTaskEvent = '${userTaskEvent}';
         </script>
 
         <script>
-          function ${userTaskEvent}(item, price){
+          function ${userTaskEvent}(item, price, picture){
             let data = JSON.parse(localStorage.getItem('cart'));
             if(!data){
               data = []
             }
-            data.push({ name: item, price: parseInt(price.split(" ")[1]) });
+            data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
             localStorage.setItem('cart', JSON.stringify(data));
 
             SnackBar({
@@ -180,6 +191,21 @@ function createListingPage(data) {
               icon: "plus",
               fixed: true
             });
+          }
+
+          function removeItem(index){
+            let data = JSON.parse(localStorage.getItem('cart'));
+            data.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(data));
+
+            SnackBar({
+              message: 'User Action Executed - Remove',
+              status: "danger",
+              icon: "danger",
+              fixed: true
+            });
+
+            fetchData();
           }
         </script>
 
@@ -416,7 +442,7 @@ fetchClasses().then((res) => {
     parser.parseString(data, (err, result) => {
       const { definitions } = result;
       const { process } = definitions;
-      const { task, serviceTask, userTask, textAnnotation, association, sequenceFlow } = process[0];
+      const { task, serviceTask, userTask, textAnnotation, association, sequenceFlow, dataStoreReference } = process[0];
       
       /* Refine Tasks */
       const refinedTasks = refineTasks(task);
@@ -424,8 +450,17 @@ fetchClasses().then((res) => {
       const refinedUserTasks = refineUserTasks(userTask);
       const refinedTextAnnotations = refineTextAnnotations(textAnnotation);
       const refinedAssociations = refineAssociations(association);
+      const refinedDataStoreReference = refineDataStoreReference(dataStoreReference);
       let refinedMenuSequenceFlow = refineMenuSequenceFlow(sequenceFlow);
       refinedMenuSequenceFlow = refinedMenuSequenceFlow.filter((item) => item.name);
+
+      /* Format DataStore */
+      let dataStore = [];
+      for (let i = 0; i < refinedDataStoreReference.length; i++) {
+        dataStore[refinedDataStoreReference[i].id] = {
+          name: refinedDataStoreReference[i].name
+        }
+      }
 
       /* Merge Anootation with tasks */
       const updatedTextAnnotations = values(merge(keyBy(refinedTextAnnotations, 'id'), keyBy(refinedAssociations, 'id'))).map((item) => ({ source: item.source, text: item.text }));
@@ -433,8 +468,28 @@ fetchClasses().then((res) => {
         id: item.id,
         name: item.name,
         outgoing: item.outgoing,
+        dataInputAssociation: item.dataInputAssociation?.map((item) => ({ 
+          id: item.$.id, 
+          source: item.sourceRef, 
+        })),
         text: item.text.split(" ")[0]
       }));
+
+      /* Add Data Store Type */
+      for (let i = 0; i < annotatedTasks.length; i++) {
+        if(annotatedTasks[i].dataInputAssociation){
+          for (let j = 0; j < annotatedTasks[i].dataInputAssociation.length; j++) {
+            const id = annotatedTasks[i].dataInputAssociation[j].source;
+            annotatedTasks[i].dataInputAssociation[j].type = dataStore[id]?.name;
+          }
+        }
+      }
+
+      for (let i = 0; i < annotatedTasks.length; i++) {
+        if(annotatedTasks[i].dataInputAssociation){
+          annotatedTasks[i].dataInputAssociation = annotatedTasks[i].dataInputAssociation[0]
+        }
+      }
 
       /* Merge User Tasks with tasks */
       let userTasks = [];
@@ -504,6 +559,7 @@ fetchClasses().then((res) => {
       }
       menuItems = results.map((item) => (item.menuItem)).filter((item) => item);
       console.log(chalk.bgGreen("Parsing BPMN File Complete "));
+
       
       /* Remove unwanted fields */
       for(let i=0; i<results.length; i++){

@@ -4,6 +4,7 @@
       <head>
         <%- include('../partials/head'); %>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         
         <script>
           const ONTOLOGY_ENDPOINT = 'http://localhost:3030/e-commerce/sparql';
@@ -13,18 +14,19 @@
           ontologyValues = ontologyValues.split(",");
 
           let taskName = 'View Product';
+          let dataInputSource = 'undefined';
           let routeType = 'listing';
           let userTask = 'Select Product';
           let userTaskEvent = 'selectProduct';
         </script>
 
         <script>
-          function selectProduct(item, price){
+          function selectProduct(item, price, picture){
             let data = JSON.parse(localStorage.getItem('cart'));
             if(!data){
               data = []
             }
-            data.push({ name: item, price: parseInt(price.split(" ")[1]) });
+            data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
             localStorage.setItem('cart', JSON.stringify(data));
 
             SnackBar({
@@ -33,6 +35,21 @@
               icon: "plus",
               fixed: true
             });
+          }
+
+          function removeItem(index){
+            let data = JSON.parse(localStorage.getItem('cart'));
+            data.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(data));
+
+            SnackBar({
+              message: 'User Action Executed - Remove',
+              status: "danger",
+              icon: "danger",
+              fixed: true
+            });
+
+            fetchData();
           }
         </script>
 

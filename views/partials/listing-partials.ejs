@@ -9,6 +9,58 @@
         },
     };
 
+    function fetchData(){
+        let data = JSON.parse(localStorage.getItem(`${taskName.split(" ")[1].toLowerCase()}`));
+        let quantifiedData = _.groupBy(data, item => item.name);
+        data = _.uniqBy(data, 'name');
+
+        template = `<button class='button-back' onclick='history.back()'>
+        <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
+        </button>`;
+        template += `
+            <div class='flex-container product-data-container'>
+            <div class="quantity-header">
+                <div class="quantity-items">Items</div>
+                <div class="quantity-number">Quantity</div>
+            </div>
+        `;
+
+        let total = 0;
+        let counter = 0;
+        for (let i=0; i <data.length; i++) {
+            counter++;
+            total += data[i].price;
+            template += `
+                <div class="selected-product-container">
+                    <div class="selected-product-image" style="background-image: url('${data[i].picture}')"></div>
+                    <div class="selected-product-text">
+                        <div class="name">${data[i].name}</div>
+                        <div class="price">${data[i].price *  quantifiedData[data[i].name].length}</div>
+                    </div> 
+                    <div class="quantity">x${quantifiedData[data[i].name].length}</div>
+                    <div class="remove" onClick="removeItem(${i})">
+                        <span class="material-symbols-outlined">close</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        template += "____________________________________________________________________________________________________";
+        template += `<div class='number-of-items display-block'>Total No. Of Items - ${counter} Items</div>`;
+        template += `<div class='total-items display-block'>Total Amount - Rs. ${total}</div>`;
+
+        template += '</div>'; 
+
+        if(document.getElementById("container")){
+            document.getElementById("container").innerHTML = template;
+        }
+        else{
+            window.onload = (event) => {
+                document.getElementById("container").innerHTML = template;
+            }; 
+        }  
+    }
+
     function fetchIndividualsPropertiesByOntologyClassName(ontologyName) {
         const postData = {
             query: `
@@ -53,9 +105,11 @@
         });
     }
 
+    let template = "";
+
     if(id){
         const data = fetchIndividualsPropertiesByOntologyClassName(id).then((response) => {
-             let template = `<button class='button-back' onclick='history.back()'>
+            template = `<button class='button-back' onclick='history.back()'>
             <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
             </button>`;
              template += "<div class='flex-container'>";
@@ -64,21 +118,22 @@
                     template += `<div class="product-container">
                     <div class="product-image" style='background-image: url("${response[i].picture}")'></div>
                     <div class="product-info">
-                    <div class="product-text">${response[i].name}</div>
-                    <div class="product-price">${response[i].price}</div>
+                        <div class="product-text">${response[i].name}</div>
+                        <div class="product-price">${response[i].price}</div>
                     </div>`;
 
                     if(routeType === "listing" && userTask){
-                        template += `<button type="button" onClick="${userTaskEvent}('${response[i].name}', '${response[i].price}')" class="button-style btn btn-warning btn-block">${userTask}</button>`;
+                        template += `<button type="button" onClick="${userTaskEvent}('${response[i].name.replace(/\'/g, '')}', '${response[i].price}', '${response[i].picture}')" class="button-style btn btn-warning btn-block">${userTask}</button>`;
                     }
                         
                     template += '</div>';
             }
 
+            template += '</div>';
             document.getElementById("container").innerHTML = template;
         });
     }
     else{
-        const data = localStorage.getItem(`${taskName.split(" ")[1].toLowerCase()}`);
+        fetchData();
     }
 </script>
