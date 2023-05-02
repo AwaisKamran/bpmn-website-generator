@@ -1,5 +1,6 @@
 const axios = require("axios");
 require("dotenv").config();
+const { DATA_TYPES } = require("./constants");
 
 let ONTOLOGY_CLASSES = [];
 
@@ -128,12 +129,14 @@ function fetchDataPropertiesByOntologyClassName(ontologyName) {
       PREFIX owl: <http://www.w3.org/2002/07/owl#> 
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
       
-      SELECT DISTINCT ?class ?label ?range  
+      SELECT DISTINCT ?class ?label ?range ?value ?sequence
       WHERE { 
         ?class rdfs:domain <${ONTOLOGY_CLASSES[ontologyName]}> . 
         ?class rdf:type owl:DatatypeProperty. 
         OPTIONAL { ?class rdfs:label ?label} 
         OPTIONAL { ?class rdfs:range ?range}  
+        OPTIONAL { ?class rdfs:isDefinedBy ?value} 
+        OPTIONAL { ?class rdfs:seeAlso ?sequence}  
       } 
         
       LIMIT 25`,
@@ -142,7 +145,6 @@ function fetchDataPropertiesByOntologyClassName(ontologyName) {
   return axios
     .post(ONTOLOGY_ENDPOINT, postData, axiosConfig)
     .then(function (response) {
-
       let features = [];
       const { results } = response.data;
       const { bindings } = results;
@@ -150,7 +152,9 @@ function fetchDataPropertiesByOntologyClassName(ontologyName) {
       for (let i = 0; i < bindings.length; i++) {
         features.push({
           label: bindings[i].label?.value,
-          range: bindings[i].range?.value.split('#')[1]
+          range: DATA_TYPES[bindings[i].range?.value.split('#')[1]],
+          class: bindings[i].value?.value,
+          sequence: bindings[i].sequence?.value
         });
       }
       

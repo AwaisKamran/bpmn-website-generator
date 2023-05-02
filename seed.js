@@ -1,4 +1,4 @@
-const { camelCase, merge, keyBy, values } = require("lodash");
+const { camelCase, merge, keyBy, values, orderBy } = require("lodash");
 const fs = require("fs");
 
 const {
@@ -10,7 +10,7 @@ const {
 
 const xml2js = require("xml2js");
 const chalk = require("chalk");
-const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LCOAL, LOCAL } = require("./utility/constants");
+const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES } = require("./utility/constants");
 
 require("dotenv").config();
 
@@ -327,7 +327,8 @@ function createCategoryPage(data) {
   });
 }
 
-function createActionPage(res, data) {
+async function createActionPage(res, data) {
+  res = orderBy(res, ['sequence'],['asc']);
   const {name, className, dataOutputAssociation, link, route, routeType, userTask} = data;
 
   let template = `<button class='button-back' onclick='history.back()'>
@@ -336,19 +337,25 @@ function createActionPage(res, data) {
   
   template += `
     <div class='main-container'>
+    <div class='quantity-heading'>${name}</div>
     <form onsubmit="return false">
   `;
 
   for (let i = 0; i < res.length; i++) {
-    template += `<div class="form-group">`;
-    if(i=== 0){
-      template += `<label for="exampleInputEmail1">${res[i].label}</label>`
+    if(res[i].class){
+      template += await addSelectiveFields(res[i].class);
     }
-    template += `<input class="form-control" name="${res[i].label}" type="text" placeholder='Enter Your ${res[i].label}' />`;
-    if(i===0){
-      template += `<small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small>`;
+    else{
+      template += `<div class="form-group">`;
+      if(i=== 0 || res[i].range === DATA_TYPES.dateTime){
+        template += `<label for="exampleInputEmail1">${res[i].label}</label>`
+      }
+      template += `<input class="form-control" name="${res[i].label}" type="${res[i].range}" placeholder='Enter Your ${res[i].label}' required />`;
+      if(i===0){
+        template += `<small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small>`;
+      }
+      template += `</div>`
     }
-    template += `</div>`
   }
 
   template += `
@@ -466,15 +473,13 @@ function addPlainFields(data) {
   return template;
 }
 
-async function addSelectiveFields(data) {
+async function addSelectiveFields(name) {
   let template = "";
-  template += `<select class="form-control" type="text" placeholder='${capitalizeFirstLetter(
-    data.join(" ")
-  )}'>`;
+  template += `<select class="form-control" name="${name.toLowerCase()}" type="text" placeholder='Select ${name}'>`;
+  template += `<option disabled selected>Select ${name}</option>`
 
-  await fetchIndividualsByOntologyClassName(
-    capitalizeFirstLetter(data[2])
-  ).then((response) => {
+  await fetchIndividualsByOntologyClassName(name)
+  .then((response) => {
     for (let i = 0; i < response.length; i++) {
       template += `<option>${response[i]}</option>`;
     }

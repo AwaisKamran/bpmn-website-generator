@@ -32,8 +32,9 @@
   <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
   </button>
     <div class='main-container'>
+    <div class='quantity-heading'>Enter Payment</div>
     <form onsubmit="return false">
-  <div class="form-group"><label for="exampleInputEmail1">Name</label><input class="form-control" name="Name" type="text" placeholder='Enter Your Name' /><small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small></div>
+  <div class="form-group"><label for="exampleInputEmail1">Name</label><input class="form-control" name="Name" type="text" placeholder='Enter Your Name' required /><small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small></div><div class="form-group"><label for="exampleInputEmail1">Expiry Date</label><input class="form-control" name="Expiry Date" type="date" placeholder='Enter Your Expiry Date' required /></div><div class="form-group"><input class="form-control" name="Card Number" type="text" placeholder='Enter Your Card Number' required /></div><div class="form-group"><input class="form-control" name="CCV" type="undefined" placeholder='Enter Your CCV' required /></div>
     <br/>
       
     <input type="submit" onClick="enterPayment(this)" class="form-control btn btn-primary" value="Submit" />

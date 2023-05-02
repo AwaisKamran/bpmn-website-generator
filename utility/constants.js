@@ -9,6 +9,12 @@ const CATEGORY = "category";
 const GET = "get";
 const POST = "post";
 
+const DATA_TYPES =  {
+  "string": "text",
+  "integer": "number",
+  "dateTime": "date"
+}
+
 module.exports = {
   PATH_TO_BPMN_FILE,
   LISTING,
@@ -17,7 +23,8 @@ module.exports = {
   GET,
   POST,
   BASE_LINK,
-  LOCAL
+  LOCAL,
+  DATA_TYPES
 };
 
 // Copy .env file
