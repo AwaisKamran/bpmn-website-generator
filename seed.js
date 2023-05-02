@@ -338,7 +338,7 @@ async function createActionPage(res, data) {
   template += `
     <div class='main-container'>
     <div class='quantity-heading'>${name}</div>
-    <form onsubmit="return false">
+    <form name="form" onsubmit="return false">
   `;
 
   for (let i = 0; i < res.length; i++) {
@@ -350,7 +350,7 @@ async function createActionPage(res, data) {
       if(i=== 0 || res[i].range === DATA_TYPES.dateTime){
         template += `<label for="exampleInputEmail1">${res[i].label}</label>`
       }
-      template += `<input class="form-control" name="${res[i].label}" type="${res[i].range}" placeholder='Enter Your ${res[i].label}' required />`;
+      template += `<input class="form-control" name="${res[i].label}" type="${res[i].range}" onKeyup="checkform()" placeholder='Enter Your ${res[i].label}' required />`;
       if(i===0){
         template += `<small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small>`;
       }
@@ -361,7 +361,7 @@ async function createActionPage(res, data) {
   template += `
     <br/>
       
-    <input type="submit" onClick="${route}(this)" class="form-control btn btn-primary" value="${userTask.name}" />
+    <input id="submitbutton" type="submit" disabled="disabled" onClick="${route}(this)" class="form-control btn btn-primary" value="${userTask.name}" />
     </form>
     </div>`;
 
@@ -389,6 +389,18 @@ async function createActionPage(res, data) {
             window.location.href = '${link}';
           }
           return false;
+        }
+
+        function checkform(){
+          var form = document.forms["form"].elements;
+          var cansubmit = true;
+          for (let i=0; i <form.length; i++) {
+              if (form[i].value.length == 0) cansubmit = false;
+          }
+
+          if (cansubmit) {
+            document.getElementById('submitbutton').disabled = !cansubmit;
+          }
         }
       </script>
     </head>
@@ -475,7 +487,7 @@ function addPlainFields(data) {
 
 async function addSelectiveFields(name) {
   let template = "";
-  template += `<select class="form-control" name="${name.toLowerCase()}" type="text" placeholder='Select ${name}'>`;
+  template += `<select onChange="checkform()" class="form-control" name="${name.toLowerCase()}" type="text" placeholder='Select ${name}'>`;
   template += `<option disabled selected>Select ${name}</option>`
 
   await fetchIndividualsByOntologyClassName(name)
