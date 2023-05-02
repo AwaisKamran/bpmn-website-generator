@@ -15,7 +15,7 @@
           if(routeType === 'action' && userTask !== 'undefined' &&  dataOutputAssociation === 'local'){
             localStorage.removeItem("Payment");
             localStorage.setItem("Payment", JSON.stringify(data))
-            window.location.href = 'http://localhost:8000/reviewOrder?id=';
+            window.location.href = 'http://localhost:8000/reviewOrder';
           }
           return false;
         }

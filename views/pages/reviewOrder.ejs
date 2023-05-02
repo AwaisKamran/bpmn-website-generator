@@ -17,56 +17,13 @@
           let taskNameObject = 'order'
           let dataInputSource = 'local';
           let dataOutputSource = 'undefined';
-          let routeType = 'listing';
+          let routeType = 'order';
           let userTask = 'Post';
           let userTaskEvent = 'post';
           let link = 'undefined';
         </script>
 
-        <script>
-          function post(item, price, picture){
-            if(item && price && picture && dataInputSource !== "local" && dataOutputSource === "local"){
-              let data = JSON.parse(localStorage.getItem('cart'));
-              if(!data){
-                data = []
-              }
-              data.push({ name: item, price: parseInt(price.split(" ")[1]), picture });
-              localStorage.setItem('cart', JSON.stringify(data));
-  
-              SnackBar({
-                message: 'User Action Executed - Post',
-                status: "success",
-                icon: "plus",
-                fixed: true
-              });
-            }
-            else{ 
-              window.location.href = link;
-            }
-          }
-
-          function removeItem(name){
-            let data = JSON.parse(localStorage.getItem('cart'));
-            const index = data.map(item => item.name).indexOf(name);
-
-            if(index >= 0){
-              data.splice(index, 1);
-              localStorage.setItem('cart', JSON.stringify(data));
-
-              SnackBar({
-                message: 'User Action Executed - Remove',
-                status: "danger",
-                icon: "danger",
-                fixed: true
-              });
-
-
-              fetchData();
-            }
-          }
-        </script>
-
-        <%- include('../partials/listing-partials'); %>
+        <%- include('../partials/order-partials'); %>
       </head>
 
       <body>

@@ -10,7 +10,7 @@ const {
 
 const xml2js = require("xml2js");
 const chalk = require("chalk");
-const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES } = require("./utility/constants");
+const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, ORDER } = require("./utility/constants");
 
 require("dotenv").config();
 
@@ -266,6 +266,81 @@ function createListingPage(data) {
   console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
 }
 
+function createOrderPage(data){
+  const { routeType, route, link} = data;
+
+  const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
+  const ontologyValues = [...Object.values(ONTOLOGY_CLASSES)];
+  const ontologyKeys = [...Object.keys(ONTOLOGY_CLASSES)];
+  const userTaskEvent = camelCase(data.userTask.name.split(" ").join(""));
+
+  const page = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <%- include('../partials/head'); %>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+        
+        <script>
+          const ONTOLOGY_ENDPOINT = '${process.env.ECOMMERCE_ONTOLOGY_ENDPOINT}';
+          let ontologyKeys = '${ontologyKeys.join(",")}';
+          let ontologyValues = '${ontologyValues.join(",")}';
+          ontologyKeys = ontologyKeys.split(",");
+          ontologyValues = ontologyValues.split(",");
+
+          let taskName = '${data.name}';
+          let taskNameObject = '${data.name.split(" ")[1].toLowerCase()}'
+          let dataInputSource = '${data?.dataInputAssociation?.type}';
+          let dataOutputSource = '${data?.dataOutputAssociation?.type}';
+          let routeType = '${routeType}';
+          let userTask = '${data.userTask.name}';
+          let userTaskEvent = '${userTaskEvent}';
+          let link = '${link}';
+        </script>
+
+        <%- include('../partials/order-partials'); %>
+      </head>
+
+      <body>
+        <header>
+          <%- include('../partials/header'); %>
+        </header>
+        <main>
+          <div id="snackbar"></div>
+          <div class="jumbotron" id="container">
+            <center>
+              <div class="loadingio-spinner-spinner-5ok1oyvgq04">
+                <div class="ldio-6t9gy4h2dvm">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+              </div>
+            </center>
+          </div>
+        </main>
+        <footer>
+          <%- include('../partials/footer'); %>
+        </footer>
+      </body>
+    </html>
+  `;
+
+  writeStream.write(page);
+  writeStream.end();
+  console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
+}
+
 function createCategoryPage(data) {
   const { className, route, link} = data;
 
@@ -435,6 +510,8 @@ function createPages(data) {
         createListingPage(data[i])
       else if (routeType === CATEGORY)
        createCategoryPage(data[i])
+      else if (routeType === ORDER)
+        createOrderPage(data[i])
       else 
         createActionPage(response, data[i])
 
