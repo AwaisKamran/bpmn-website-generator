@@ -297,6 +297,17 @@ function createOrderPage(data){
           let userTask = '${data.userTask.name}';
           let userTaskEvent = '${userTaskEvent}';
           let link = '${link}';
+
+          function ${userTaskEvent}(){
+            localStorage.clear();
+
+            SnackBar({
+              message: 'User Action Executed - ${data.userTask.name}',
+              status: "info",
+              icon: "plus",
+              fixed: true
+            });
+          }
         </script>
 
         <%- include('../partials/order-partials'); %>
@@ -551,20 +562,9 @@ function createMenuHeaderItems(data){
   writeStream.end();
 }
 
-function addPlainFields(data) {
-  data.splice(0, 1);
-
-  let template = "";
-  template += `<input class="form-control" type="text" placeholder='${capitalizeFirstLetter(
-    data.join(" ")
-  )}'/><br/>`;
-
-  return template;
-}
-
 async function addSelectiveFields(name) {
   let template = "";
-  template += `<select onChange="checkform()" class="form-control" name="${name.toLowerCase()}" type="text" placeholder='Select ${name}'>`;
+  template += `<select onChange="checkform()" class="form-control" name="${name}" type="text" placeholder='Select ${name}'>`;
   template += `<option disabled selected>Select ${name}</option>`
 
   await fetchIndividualsByOntologyClassName(name)

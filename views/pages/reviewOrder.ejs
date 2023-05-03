@@ -21,6 +21,17 @@
           let userTask = 'Post';
           let userTaskEvent = 'post';
           let link = 'undefined';
+
+          function post(){
+            localStorage.clear();
+
+            SnackBar({
+              message: 'User Action Executed - Post',
+              status: "info",
+              icon: "plus",
+              fixed: true
+            });
+          }
         </script>
 
         <%- include('../partials/order-partials'); %>
