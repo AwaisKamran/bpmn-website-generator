@@ -32,5 +32,9 @@ module.exports = {
 };
 
 // Copy .env file
+// BASE = 8000
 // ECOMMERCE = "./fixtures/e-commerce/diagram-1.bpmn"
-// ECOMMERCE_ONTOLOGY_ENDPOINT = "http://localhost:3030/e-commerce"
+// ECOMMERCE_ONTOLOGY_ENDPOINT = "http://localhost:3030/e-commerce/sparql"
+
+// PHARMACY = "./fixtures/pharmacy/diagram-1.bpmn"
+// PHARMACY_ONTOLOGY_ENDPOINT = "http://localhost:3030/pharmacy/sparql"
