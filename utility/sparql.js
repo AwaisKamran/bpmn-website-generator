@@ -1,10 +1,10 @@
 const axios = require("axios");
 require("dotenv").config();
-const { DATA_TYPES, PATH_TO_BPMN_FILE } = require("./constants");
+const { DATA_TYPES } = require("./constants");
 
 let ONTOLOGY_CLASSES = [];
 
-const ONTOLOGY_ENDPOINT = process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT;
+const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; //process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT;
 
 const axiosConfig = {
   headers: {

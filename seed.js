@@ -10,7 +10,7 @@ const { PATH_TO_BPMN_FILE } = require("./utility/constants");
 const xml2js = require("xml2js");
 const chalk = require("chalk");
 const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, ORDER } = require("./utility/constants");
-const ONTOLOGY_ENDPOINT = process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT;
+const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
 require("dotenv").config();
 
 console.log(

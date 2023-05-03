@@ -12,22 +12,36 @@
     <endEvent id="Event_1nf9r4a">
       <incoming>Flow_1dwpiyh</incoming>
     </endEvent>
-    <task id="Activity_1u7had2" name="Review Order">
-      <incoming>Flow_0azfjkq</incoming>
-      <outgoing>Flow_1dwpiyh</outgoing>
-      <outgoing>Flow_0vs1peb</outgoing>
-      <outgoing>Flow_0d6l7zd</outgoing>
-      <property id="Property_0i7a5gz" name="__targetRef_placeholder" />
-      <dataInputAssociation id="DataInputAssociation_041sjw7">
+    <task id="Task_1hcentk" name="View Category">
+      <incoming>SequenceFlow_0h21x7r</incoming>
+      <outgoing>Flow_0i7hdu1</outgoing>
+      <outgoing>Flow_08kq81p</outgoing>
+      <outgoing>Flow_0wrppib</outgoing>
+    </task>
+    <task id="Activity_1jk29tv" name="View Product">
+      <incoming>Flow_0i7hdu1</incoming>
+      <outgoing>Flow_1ta0oxm</outgoing>
+      <outgoing>Flow_0rq6hru</outgoing>
+      <outgoing>Flow_1es1oiz</outgoing>
+      <dataOutputAssociation id="DataOutputAssociation_1qy190d">
+        <targetRef>DataStoreReference_16g47js</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="Activity_1tgjok0" name="View Cart">
+      <incoming>Flow_0rq6hru</incoming>
+      <outgoing>Flow_1i9b0t8</outgoing>
+      <outgoing>Flow_0btguh1</outgoing>
+      <property id="Property_059sfi5" name="__targetRef_placeholder" />
+      <dataInputAssociation id="DataInputAssociation_1ic8swx">
         <sourceRef>DataStoreReference_16g47js</sourceRef>
-        <targetRef>Property_0i7a5gz</targetRef>
+        <targetRef>Property_059sfi5</targetRef>
       </dataInputAssociation>
     </task>
-    <task id="Activity_0184qbs" name="Enter Payment">
-      <incoming>Flow_0co991s</incoming>
-      <outgoing>Flow_0azfjkq</outgoing>
-      <outgoing>Flow_0uy771x</outgoing>
-      <dataOutputAssociation id="DataOutputAssociation_0wqsjdp">
+    <task id="Activity_0z78hjk" name="Enter Person">
+      <incoming>Flow_0btguh1</incoming>
+      <outgoing>Flow_0ivei6q</outgoing>
+      <outgoing>Flow_14u9tl7</outgoing>
+      <dataOutputAssociation id="DataOutputAssociation_1867q9e">
         <targetRef>DataStoreReference_16g47js</targetRef>
       </dataOutputAssociation>
     </task>
@@ -39,13 +53,24 @@
         <targetRef>DataStoreReference_16g47js</targetRef>
       </dataOutputAssociation>
     </task>
-    <task id="Activity_0z78hjk" name="Enter Person">
-      <incoming>Flow_0btguh1</incoming>
-      <outgoing>Flow_0ivei6q</outgoing>
-      <outgoing>Flow_14u9tl7</outgoing>
-      <dataOutputAssociation id="DataOutputAssociation_1867q9e">
+    <task id="Activity_0184qbs" name="Enter Payment">
+      <incoming>Flow_0co991s</incoming>
+      <outgoing>Flow_0azfjkq</outgoing>
+      <outgoing>Flow_0uy771x</outgoing>
+      <dataOutputAssociation id="DataOutputAssociation_0wqsjdp">
         <targetRef>DataStoreReference_16g47js</targetRef>
       </dataOutputAssociation>
+    </task>
+    <task id="Activity_1u7had2" name="Review Order">
+      <incoming>Flow_0azfjkq</incoming>
+      <outgoing>Flow_1dwpiyh</outgoing>
+      <outgoing>Flow_0vs1peb</outgoing>
+      <outgoing>Flow_0d6l7zd</outgoing>
+      <property id="Property_0i7a5gz" name="__targetRef_placeholder" />
+      <dataInputAssociation id="DataInputAssociation_041sjw7">
+        <sourceRef>DataStoreReference_16g47js</sourceRef>
+        <targetRef>Property_0i7a5gz</targetRef>
+      </dataInputAssociation>
     </task>
     <userTask id="Activity_00f274m" name="Submit">
       <incoming>Flow_14u9tl7</incoming>
@@ -59,31 +84,6 @@
     <userTask id="Activity_1xjkbsg" name="Checkout">
       <incoming>Flow_1i9b0t8</incoming>
     </userTask>
-    <task id="Activity_1tgjok0" name="View Cart">
-      <incoming>Flow_0rq6hru</incoming>
-      <outgoing>Flow_1i9b0t8</outgoing>
-      <outgoing>Flow_0btguh1</outgoing>
-      <property id="Property_059sfi5" name="__targetRef_placeholder" />
-      <dataInputAssociation id="DataInputAssociation_1ic8swx">
-        <sourceRef>DataStoreReference_16g47js</sourceRef>
-        <targetRef>Property_059sfi5</targetRef>
-      </dataInputAssociation>
-    </task>
-    <task id="Activity_1jk29tv" name="View Product">
-      <incoming>Flow_0i7hdu1</incoming>
-      <outgoing>Flow_1ta0oxm</outgoing>
-      <outgoing>Flow_0rq6hru</outgoing>
-      <outgoing>Flow_1es1oiz</outgoing>
-      <dataOutputAssociation id="DataOutputAssociation_1qy190d">
-        <targetRef>DataStoreReference_16g47js</targetRef>
-      </dataOutputAssociation>
-    </task>
-    <task id="Task_1hcentk" name="View Category">
-      <incoming>SequenceFlow_0h21x7r</incoming>
-      <outgoing>Flow_0i7hdu1</outgoing>
-      <outgoing>Flow_08kq81p</outgoing>
-      <outgoing>Flow_0wrppib</outgoing>
-    </task>
     <userTask id="Activity_0c0jgd0" name="Select Catgeory">
       <incoming>Flow_0wrppib</incoming>
     </userTask>

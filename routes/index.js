@@ -11,9 +11,13 @@
     app.use(cors(corsOptions)) 
   
         router.get('/', function(req, res) {
-          res.render('pages/viewProduct');
+          res.render('pages/viewCategory');
         });
       
+      router.get('/viewCategory', function(req, res) {
+        res.render('pages/viewCategory');
+      });
+    
       router.get('/viewProduct', function(req, res) {
         res.render('pages/viewProduct');
       });
@@ -28,6 +32,10 @@
     
       router.get('/enterAddress', function(req, res) {
         res.render('pages/enterAddress');
+      });
+    
+      router.get('/enterPayment', function(req, res) {
+        res.render('pages/enterPayment');
       });
     
       router.get('/reviewOrder', function(req, res) {
