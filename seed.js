@@ -217,8 +217,6 @@ function createListingPage(data) {
                 icon: "danger",
                 fixed: true
               });
-
-
               fetchData();
             }
           }
@@ -300,6 +298,7 @@ function createOrderPage(data){
 
           function ${userTaskEvent}(){
             localStorage.clear();
+            fetchData();
 
             SnackBar({
               message: 'User Action Executed - ${data.userTask.name}',

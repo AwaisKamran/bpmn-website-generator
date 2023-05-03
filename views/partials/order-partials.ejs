@@ -20,69 +20,79 @@
         <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
         </button>`;
 
-        for(let i=0; i<enteries.length; i++){
-            let data = enteries[i];
-            let heading = data[0];
-            data = JSON.parse(data[1])
+        if(enteries.length > 0){
+            for(let i=0; i<enteries.length; i++){
+                let data = enteries[i];
+                let heading = data[0];
+                data = JSON.parse(data[1])
 
-            if(heading === "cart"){
-                let quantifiedData = _.groupBy(data, item => item.name);
-                data = _.uniqBy(data, 'name');
+                if(heading === "cart"){
+                    let quantifiedData = _.groupBy(data, item => item.name);
+                    data = _.uniqBy(data, 'name');
 
-                template += `
-                    <div class='flex-container product-data-container'>
-                    <div class='quantity-heading'>View ${capitalizeFirstLetter(heading)}</div>
-                    <div class="quantity-header">
-                        <div class="quantity-items">Items</div>
-                        <div class="quantity-number">Quantity</div>
-                    </div>
-                `;
-
-                let total = 0;
-                let counter = 0;
-                for (let i=0; i <data.length; i++) {
-                    counter++;
-                    total += data[i].price;
                     template += `
-                        <div class="selected-product-container">
-                            <div class="selected-product-image" style="background-image: url('${data[i].picture}')"></div>
-                            <div class="selected-product-text">
-                                <div class="name">${data[i].name}</div>
-                                <div class="price">${data[i].price *  quantifiedData[data[i].name].length}</div>
-                            </div> 
-                            <div class="quantity">x${quantifiedData[data[i].name].length}</div>
+                        <div class='flex-container product-data-container'>
+                        <div class='quantity-heading'>View ${capitalizeFirstLetter(heading)}</div>
+                        <div class="quantity-header">
+                            <div class="quantity-items">Items</div>
+                            <div class="quantity-number">Quantity</div>
                         </div>
                     `;
+
+                    let total = 0;
+                    let counter = 0;
+                    for (let i=0; i <data.length; i++) {
+                        counter++;
+                        total += data[i].price;
+                        template += `
+                            <div class="selected-product-container">
+                                <div class="selected-product-image" style="background-image: url('${data[i].picture}')"></div>
+                                <div class="selected-product-text">
+                                    <div class="name">${data[i].name}</div>
+                                    <div class="price">${data[i].price *  quantifiedData[data[i].name].length}</div>
+                                </div> 
+                                <div class="quantity">x${quantifiedData[data[i].name].length}</div>
+                            </div>
+                        `;
+                    }
+
+                    template += "____________________________________________________________________________________________________";
+                    template += `<div class='number-of-items display-block'>Total No. Of Items - ${counter} Items</div>`;
+                    template += `<div class='total-items display-block'>Total Amount - Rs. ${total}</div>`;
+
+
+                    template += '</div>'; 
+                
                 }
+                else{
+                    template += `<div class='flex-container product-data-container'>
+                        <div class='quantity-heading'>View ${capitalizeFirstLetter(heading)}</div>`;
 
-                template += "____________________________________________________________________________________________________";
-                template += `<div class='number-of-items display-block'>Total No. Of Items - ${counter} Items</div>`;
-                template += `<div class='total-items display-block'>Total Amount - Rs. ${total}</div>`;
+                    const keys = Object.keys(data);
+                    const values = Object.values(data);
 
+                    for(let i=0; i<keys.length; i++){
+                        template += `<div class="display-flex">
+                            <div class="key-text">${keys[i]}</div>
+                            <div class="">${values[i]}</div>
+                        </div>`;
+                    }
 
-                template += '</div>'; 
-               
+                    if(routeType === "order" && userTask && i === enteries.length -1){
+                        template += `<br/><br/><button type="button" onClick="${userTaskEvent}()" class="button-style btn btn-warning btn-block">${userTask}</button>`;
+                    }
+                
+                    template += '</div>'; 
+                }
             }
-            else{
-                template += `<div class='flex-container product-data-container'>
-                    <div class='quantity-heading'>View ${capitalizeFirstLetter(heading)}</div>`;
-
-                const keys = Object.keys(data);
-                const values = Object.values(data);
-
-                for(let i=0; i<keys.length; i++){
-                    template += `<div class="display-flex">
-                        <div class="key-text">${keys[i]}</div>
-                        <div class="">${values[i]}</div>
-                    </div>`;
-                }
-
-                if(routeType === "order" && userTask && i === enteries.length -1){
-                    template += `<br/><br/><button type="button" onClick="${userTaskEvent}()" class="button-style btn btn-warning btn-block">${userTask}</button>`;
-                }
-
-                template += '</div>'; 
-            }
+        }
+        else{
+            template += `<div class='flex-container product-data-container'>
+                <div class='quantity-heading'>${taskName}</div><br/>
+                <img class="image-block" src="https://static.vecteezy.com/system/resources/previews/005/893/568/original/hand-thumb-up-line-icon-gesture-finger-up-symbol-outline-pictogram-like-good-okay-cool-nice-button-icon-social-media-sign-isolated-illustration-vector.jpg" width="100px" /><br/>
+                <div class="message">There are no items to be reviewed.</div><br/>
+            `;
+            template += '</div>'; 
         }
 
         if(document.getElementById("container")){

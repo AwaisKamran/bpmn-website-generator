@@ -111,9 +111,9 @@
         });
     }
 
-    let template = "";
+    function fetchIndividuals(id){
+        let template = "";
 
-    if(id){
         const data = fetchIndividualsPropertiesByOntologyClassName(id).then((response) => {
             template = `<button class='button-back' onclick='history.back()'>
             <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
@@ -138,7 +138,14 @@
             document.getElementById("container").innerHTML = template;
         });
     }
+
+    if(id){
+        fetchIndividuals(id);
+    }
     else{
-        fetchData();
+        if(dataInputSource === "local")
+            fetchData();
+        else
+            fetchIndividuals(`${taskNameObject}`);
     }
 </script>
