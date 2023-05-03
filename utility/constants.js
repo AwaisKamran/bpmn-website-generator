@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const BASE_LINK = `http://localhost:${process.env.BASE}/`;
-const PATH_TO_BPMN_FILE = process.env.ECOMMERCE;
+const PATH_TO_BPMN_FILE = process.env.PHARMACY;
 const LISTING = "listing";
 const ACTION = "action";
 const ORDER = "order";
