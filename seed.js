@@ -1,17 +1,16 @@
 const { camelCase, merge, keyBy, values, orderBy } = require("lodash");
 const fs = require("fs");
-
 const {
   fetchClasses,
   fetchDataPropertiesByOntologyClassName,
   fetchIndividualsByOntologyClassName,
   fetchSubClassesByOntologyClassName,
 } = require("./utility/sparql");
-
+const { PATH_TO_BPMN_FILE } = require("./utility/constants");
 const xml2js = require("xml2js");
 const chalk = require("chalk");
 const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, ORDER } = require("./utility/constants");
-
+const ONTOLOGY_ENDPOINT = process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT;
 require("dotenv").config();
 
 console.log(
@@ -165,7 +164,7 @@ function createListingPage(data) {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         
         <script>
-          const ONTOLOGY_ENDPOINT = '${process.env.ECOMMERCE_ONTOLOGY_ENDPOINT}';
+          const ONTOLOGY_ENDPOINT = '${ONTOLOGY_ENDPOINT}';
           let ontologyKeys = '${ontologyKeys.join(",")}';
           let ontologyValues = '${ontologyValues.join(",")}';
           ontologyKeys = ontologyKeys.split(",");
@@ -281,7 +280,7 @@ function createOrderPage(data){
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         
         <script>
-          const ONTOLOGY_ENDPOINT = '${process.env.ECOMMERCE_ONTOLOGY_ENDPOINT}';
+          const ONTOLOGY_ENDPOINT = '${ONTOLOGY_ENDPOINT}';
           let ontologyKeys = '${ontologyKeys.join(",")}';
           let ontologyValues = '${ontologyValues.join(",")}';
           ontologyKeys = ontologyKeys.split(",");
@@ -587,12 +586,13 @@ fetchClasses().then((res) => {
   console.log(chalk.bgGreen("Fetched Ontology Classes "));
 
   /* Read file details */
-  fs.readFile(process.env.ECOMMERCE, (err, data) => {
+  fs.readFile(PATH_TO_BPMN_FILE, (err, data) => {
     parser.parseString(data, (err, result) => {
+      console.log(JSON.stringify(result));
       const { definitions } = result;
       const { process } = definitions;
       const { task, serviceTask, userTask, textAnnotation, association, sequenceFlow, dataStoreReference } = process[0];
-      
+
       /* Refine Tasks */
       const refinedTasks = refineTasks(task);
       const refinedServiceTasks = refineServiceTasks(serviceTask);
@@ -708,7 +708,7 @@ fetchClasses().then((res) => {
         }
       }
 
-      const finalTaskList = annotatedTasks.reverse();
+      const finalTaskList = annotatedTasks;
       const results = consolidateResults(finalTaskList);
       console.log(chalk.bgGreen("Result Consolidated"));
 
@@ -743,6 +743,8 @@ fetchClasses().then((res) => {
         delete results[i].id;
         delete results[i].outgoing;
       }
+
+      console.log(results);
 
       /* Create Routes */
       createRouteFiles(results);
