@@ -1,13 +1,14 @@
 
     <!DOCTYPE html>
     <html lang="en">
-      <script>
-        let style = 'warning';
-        let title = 'E-commerce Ontology Platform';
-        document.title = title;
-     </script>
       <head>
         <%- include('../partials/head'); %>
+        <script>
+          let style = 'warning';
+          let title = 'E-commerce Ontology Platform';
+          document.title = title;
+          document.getElementById("anchor-heading").innerHTML = title;
+      </script>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         
@@ -46,6 +47,9 @@
       <body>
         <header>
           <%- include('../partials/header'); %>
+          <script>
+            document.getElementById("anchor-heading").innerHTML = title;
+          </script>
         </header>
         <main>
           <div id="snackbar"></div>

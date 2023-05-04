@@ -113,6 +113,11 @@
 
     function fetchIndividuals(id){
         let template = "";
+
+        template = `<button class='button-back' onclick='history.back()'>
+        <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
+        </button>`;
+        
         const data = fetchIndividualsPropertiesByOntologyClassName(capitalizeFirstLetter(id)).then((response) => {
             template += "<div class='flex-container'>";
             
@@ -143,9 +148,12 @@
         fetchIndividuals(id);
     }
     else{
-        if(dataInputSource === "local")
+        if(dataInputSource === "local"){
             fetchData();
-        else
+        }
+        else{
+            console.log(`${taskNameObject}`)
             fetchIndividuals(`${taskNameObject}`);
+        }       
     }
 </script>

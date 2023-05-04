@@ -9,8 +9,8 @@ const {
 const xml2js = require("xml2js");
 const chalk = require("chalk");
 const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, ORDER } = require("./utility/constants");
-const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
-const PATH_TO_BPMN_FILE = process.env.ECOMMERCE; // process.env.PHARMACY;
+const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
+const PATH_TO_BPMN_FILE = process.env.ECOMMERCE; //process.env.ECOMMERCE; // process.env.PHARMACY;
 require("dotenv").config();
 
 console.log(
@@ -159,13 +159,12 @@ function createListingPage(data, configuration) {
     <!DOCTYPE html>
     <html lang="en">
       <head>
+        <%- include('../partials/head'); %>
         <script>
           let style = '${configuration.style}';
           let title = '${configuration.title}';
           document.title = title;
         </script>
-
-        <%- include('../partials/head'); %>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         
@@ -177,7 +176,7 @@ function createListingPage(data, configuration) {
           ontologyValues = ontologyValues.split(",");
 
           let taskName = '${data.name}';
-          let taskNameObject = '${data.name.split(" ")[1].toLowerCase()}'
+          let taskNameObject = '${data.name.split(" ")[1]}'
           let dataInputSource = '${data?.dataInputAssociation?.type}';
           let dataOutputSource = '${data?.dataOutputAssociation?.type}';
           let routeType = '${routeType}';
@@ -233,6 +232,9 @@ function createListingPage(data, configuration) {
       <body>
         <header>
           <%- include('../partials/header'); %>
+          <script>
+            document.getElementById("anchor-heading").innerHTML = title;
+          </script>
         </header>
         <main>
           <div id="snackbar"></div>
@@ -266,7 +268,6 @@ function createListingPage(data, configuration) {
 
   writeStream.write(page);
   writeStream.end();
-  console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
 }
 
 function createOrderPage(data, configuration){
@@ -280,13 +281,14 @@ function createOrderPage(data, configuration){
   const page = `
     <!DOCTYPE html>
     <html lang="en">
-      <script>
-        let style = '${configuration.style}';
-        let title = '${configuration.title}';
-        document.title = title;
-     </script>
       <head>
         <%- include('../partials/head'); %>
+        <script>
+          let style = '${configuration.style}';
+          let title = '${configuration.title}';
+          document.title = title;
+          document.getElementById("anchor-heading").innerHTML = title;
+      </script>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         
@@ -325,6 +327,9 @@ function createOrderPage(data, configuration){
       <body>
         <header>
           <%- include('../partials/header'); %>
+          <script>
+            document.getElementById("anchor-heading").innerHTML = title;
+          </script>
         </header>
         <main>
           <div id="snackbar"></div>
@@ -358,7 +363,6 @@ function createOrderPage(data, configuration){
 
   writeStream.write(page);
   writeStream.end();
-  console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
 }
 
 function createCategoryPage(data, configuration) {
@@ -380,12 +384,13 @@ function createCategoryPage(data, configuration) {
       <!DOCTYPE html>
       <html lang="en">
         <head>
+          <%- include('../partials/head'); %>
           <script>
             let style = '${configuration.style}';
             let title = '${configuration.title}';
             document.title = title;
+            document.getElementById("anchor-heading").innerHTML = title;
           </script>
-          <%- include('../partials/head'); %>
 
           <script>
             var images = [];
@@ -407,6 +412,9 @@ function createCategoryPage(data, configuration) {
         <body>
           <header>
             <%- include('../partials/header'); %>
+            <script>
+              document.getElementById("anchor-heading").innerHTML = title;
+            </script>
           </header>
           <main>
 
@@ -473,13 +481,13 @@ async function createActionPage(res, data, configuration) {
   <!DOCTYPE html>
   <html lang="en">
     <head>
+      <%- include('../partials/head'); %>
       <script>
         let style = '${configuration.style}';
         let title = '${configuration.title}';
         document.title = title;
+        document.getElementById("anchor-heading").innerHTML = title;
       </script>
-     
-      <%- include('../partials/head'); %>
 
       <script>
         let routeType = '${routeType}';
@@ -514,6 +522,9 @@ async function createActionPage(res, data, configuration) {
     <body>
       <header>
         <%- include('../partials/header'); %>
+        <script>
+          document.getElementById("anchor-heading").innerHTML = title;
+        </script>
       </header>
       <main>
         <div class="jumbotron">
