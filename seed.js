@@ -6,11 +6,11 @@ const {
   fetchIndividualsByOntologyClassName,
   fetchSubClassesByOntologyClassName,
 } = require("./utility/sparql");
-const { PATH_TO_BPMN_FILE } = require("./utility/constants");
 const xml2js = require("xml2js");
 const chalk = require("chalk");
 const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, ORDER } = require("./utility/constants");
 const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
+const PATH_TO_BPMN_FILE = process.env.ECOMMERCE; // process.env.PHARMACY;
 require("dotenv").config();
 
 console.log(
@@ -147,7 +147,7 @@ function createRouteFiles(data) {
   );
 }
 
-function createListingPage(data) {
+function createListingPage(data, configuration) {
   const { routeType, route, link} = data;
 
   const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
@@ -159,6 +159,12 @@ function createListingPage(data) {
     <!DOCTYPE html>
     <html lang="en">
       <head>
+        <script>
+          let style = '${configuration.style}';
+          let title = '${configuration.title}';
+          document.title = title;
+        </script>
+
         <%- include('../partials/head'); %>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
@@ -263,7 +269,7 @@ function createListingPage(data) {
   console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
 }
 
-function createOrderPage(data){
+function createOrderPage(data, configuration){
   const { routeType, route, link} = data;
 
   const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
@@ -274,6 +280,11 @@ function createOrderPage(data){
   const page = `
     <!DOCTYPE html>
     <html lang="en">
+      <script>
+        let style = '${configuration.style}';
+        let title = '${configuration.title}';
+        document.title = title;
+     </script>
       <head>
         <%- include('../partials/head'); %>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -350,7 +361,7 @@ function createOrderPage(data){
   console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
 }
 
-function createCategoryPage(data) {
+function createCategoryPage(data, configuration) {
   const { className, route, link} = data;
 
   fetchSubClassesByOntologyClassName(className).then((response) => {
@@ -369,6 +380,11 @@ function createCategoryPage(data) {
       <!DOCTYPE html>
       <html lang="en">
         <head>
+          <script>
+            let style = '${configuration.style}';
+            let title = '${configuration.title}';
+            document.title = title;
+          </script>
           <%- include('../partials/head'); %>
 
           <script>
@@ -411,7 +427,7 @@ function createCategoryPage(data) {
   });
 }
 
-async function createActionPage(res, data) {
+async function createActionPage(res, data, configuration) {
   res = orderBy(res, ['sequence'],['asc']);
   const {name, className, dataOutputAssociation, link, route, routeType, userTask} = data;
 
@@ -445,7 +461,7 @@ async function createActionPage(res, data) {
   template += `
     <br/>
       
-    <input id="submitbutton" type="submit" disabled="disabled" onClick="${route}(this)" class="form-control btn btn-primary" value="${userTask.name}" />
+    <input id="submitbutton" type="submit" disabled="disabled" onClick="${route}(this)" class="form-control btn btn-${configuration.style}" value="${userTask.name}" />
     </form>
     </div>`;
 
@@ -457,6 +473,12 @@ async function createActionPage(res, data) {
   <!DOCTYPE html>
   <html lang="en">
     <head>
+      <script>
+        let style = '${configuration.style}';
+        let title = '${configuration.title}';
+        document.title = title;
+      </script>
+     
       <%- include('../partials/head'); %>
 
       <script>
@@ -509,20 +531,32 @@ async function createActionPage(res, data) {
   writeStream.end();
 }
 
-function createPages(data) {
+async function createPages(data) {
+
+  const configurationsClass = "Configuration";
+  let configurations = await fetchIndividualsByOntologyClassName(configurationsClass).then((response)=>{
+    return response;
+  });
+
+  let configurationData = {};
+  for(let i=0; i<configurations.length; i++){
+    const values = configurations[i].split(":");
+    configurationData[values[0]] = values[1];
+  }
+
   for (let i=0; i <data.length; i++) {
     const { route, routeType, className} = data[i];
     fetchDataPropertiesByOntologyClassName(
       capitalizeFirstLetter(className)
     ).then((response) => {
       if(routeType === LISTING)
-        createListingPage(data[i])
+        createListingPage(data[i], configurationData)
       else if (routeType === CATEGORY)
-       createCategoryPage(data[i])
+       createCategoryPage(data[i], configurationData)
       else if (routeType === ORDER)
-        createOrderPage(data[i])
+        createOrderPage(data[i], configurationData)
       else 
-        createActionPage(response, data[i])
+        createActionPage(response, data[i], configurationData)
 
       console.log(
         chalk.bgYellow(`Page - ${route} Generation Complete`)
@@ -588,7 +622,6 @@ fetchClasses().then((res) => {
   /* Read file details */
   fs.readFile(PATH_TO_BPMN_FILE, (err, data) => {
     parser.parseString(data, (err, result) => {
-      console.log(JSON.stringify(result));
       const { definitions } = result;
       const { process } = definitions;
       const { task, serviceTask, userTask, textAnnotation, association, sequenceFlow, dataStoreReference } = process[0];
@@ -743,8 +776,6 @@ fetchClasses().then((res) => {
         delete results[i].id;
         delete results[i].outgoing;
       }
-
-      console.log(results);
 
       /* Create Routes */
       createRouteFiles(results);

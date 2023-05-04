@@ -79,7 +79,7 @@
                     }
 
                     if(routeType === "order" && userTask && i === enteries.length -1){
-                        template += `<br/><br/><button type="button" onClick="${userTaskEvent}()" class="button-style btn btn-warning btn-block">${userTask}</button>`;
+                        template += `<br/><br/><button type="button" onClick="${userTaskEvent}()" class="button-style btn btn-${style} btn-block">${userTask}</button>`;
                     }
                 
                     template += '</div>'; 

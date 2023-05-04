@@ -52,7 +52,7 @@
 
 
         if(routeType === "listing" && userTask){
-            template += `<button type="button" onClick="${userTaskEvent}()" class="button-style btn btn-warning btn-block">${userTask}</button>`;
+            template += `<button type="button" onClick="${userTaskEvent}()" class="button-style btn btn-${style} btn-block">${userTask}</button>`;
         }
 
         template += '</div>'; 
@@ -125,7 +125,7 @@
                 </div>`;
 
                 if(routeType === "listing" && userTask){
-                    template += `<button type="button" onClick="${userTaskEvent}('${response[i].name.replace(/\'/g, '')}', '${response[i].price}', '${response[i].picture}')" class="button-style btn btn-warning btn-block">${userTask}</button>`;
+                    template += `<button type="button" onClick="${userTaskEvent}('${response[i].name.replace(/\'/g, '')}', '${response[i].price}', '${response[i].picture}')" class="button-style btn btn-${style} btn-block">${userTask}</button>`;
                 }
                 template += '</div>';
             }
