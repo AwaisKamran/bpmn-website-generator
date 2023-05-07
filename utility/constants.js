@@ -9,6 +9,8 @@ const CATEGORY = "category";
 const GET = "get";
 const POST = "post";
 const PRODUCT = "product"
+const START_EVENT = "start-event"
+const TASK = "task"
 
 const DATA_TYPES =  {
   "string": "text",
@@ -26,7 +28,9 @@ module.exports = {
   LOCAL,
   DATA_TYPES,
   ORDER,
-  PRODUCT
+  PRODUCT,
+  START_EVENT,
+  TASK
 };
 
 // Copy .env file

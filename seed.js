@@ -8,9 +8,9 @@ const {
 } = require("./utility/sparql");
 const xml2js = require("xml2js");
 const chalk = require("chalk");
-const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, ORDER } = require("./utility/constants");
-const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
-const PATH_TO_BPMN_FILE = process.env.ECOMMERCE; //process.env.ECOMMERCE; // process.env.PHARMACY;
+const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, ORDER, TASK } = require("./utility/constants");
+const ONTOLOGY_ENDPOINT = process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
+const PATH_TO_BPMN_FILE = process.env.PHARMACY; //process.env.ECOMMERCE; // process.env.PHARMACY;
 require("dotenv").config();
 
 console.log(
@@ -66,7 +66,7 @@ function refineAssociations(tasks) {
   return refinedAssociations;
 }
 
-function refineMenuSequenceFlow(tasks){
+function refineMenuSequenceFlow(tasks) {
   const refinedMenuSequenceFlow = tasks.map((item) => ({
     id: item.$.id,
     name: item.$.name,
@@ -75,7 +75,7 @@ function refineMenuSequenceFlow(tasks){
   return refinedMenuSequenceFlow;
 }
 
-function refineDataStoreReference(task){
+function refineDataStoreReference(task) {
   const refinedDataStoreData = task.map((item) => ({
     id: item.$.id,
     name: item.$.name,
@@ -84,20 +84,20 @@ function refineDataStoreReference(task){
 }
 
 function consolidateResults(data) {
-  for (let i=0; i <data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     data[i].route = camelCase(data[i].name.split(" ").join(""));
     data[i].routeType = data[i].text.toLowerCase();
     data[i].className = data[i].name.split(" ")[1];
     delete data[i].text;
   }
 
-  for(let i=0; i<data.length; i++){
-    if(data[i+1]){
-      if(data[i+1].routeType === LISTING) {
-        data[i].link = `${BASE_LINK}${data[i+1].route}?id=`;
+  for (let i = 0; i < data.length; i++) {
+    if (data[i + 1]) {
+      if (data[i + 1].routeType === LISTING) {
+        data[i].link = `${BASE_LINK}${data[i + 1].route}?id=`;
       }
-      else{
-        data[i].link = `${BASE_LINK}${data[i+1].route}`;
+      else {
+        data[i].link = `${BASE_LINK}${data[i + 1].route}`;
       }
     }
   }
@@ -121,7 +121,7 @@ function createRouteFiles(data) {
   `);
 
   for (let i = 0; i < data.length; i++) {
-    if(i === 0){
+    if (i === 0) {
       writeStream.write(`
         router.get('/', function(req, res) {
           res.render('pages/${data[i].route}');
@@ -148,7 +148,7 @@ function createRouteFiles(data) {
 }
 
 function createListingPage(data, configuration) {
-  const { routeType, route, link} = data;
+  const { routeType, route, link } = data;
 
   const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
   const ontologyValues = [...Object.values(ONTOLOGY_CLASSES)];
@@ -270,8 +270,8 @@ function createListingPage(data, configuration) {
   writeStream.end();
 }
 
-function createOrderPage(data, configuration){
-  const { routeType, route, link} = data;
+function createOrderPage(data, configuration) {
+  const { routeType, route, link } = data;
 
   const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
   const ontologyValues = [...Object.values(ONTOLOGY_CLASSES)];
@@ -366,12 +366,12 @@ function createOrderPage(data, configuration){
 }
 
 function createCategoryPage(data, configuration) {
-  const { className, route, link} = data;
+  const { className, route, link } = data;
 
   fetchSubClassesByOntologyClassName(className).then((response) => {
     let template = "<div class='flex-container'>";
 
-    for (let i=0; i <response.length; i++) {
+    for (let i = 0; i < response.length; i++) {
       template += `<a href='${link}${response[i].value}'><div class="category-container box">
           <div class="image-container" class="lozad" style='background-image: url("${response[i].comment}")'></div>
           <div class="category-text">${response[i].value}</div>
@@ -436,13 +436,13 @@ function createCategoryPage(data, configuration) {
 }
 
 async function createActionPage(res, data, configuration) {
-  res = orderBy(res, ['sequence'],['asc']);
-  const {name, className, dataOutputAssociation, link, route, routeType, userTask} = data;
+  res = orderBy(res, ['sequence'], ['asc']);
+  const { name, className, dataOutputAssociation, link, route, routeType, userTask } = data;
 
   let template = `<button class='button-back' onclick='history.back()'>
   <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
   </button>`;
-  
+
   template += `
     <div class='main-container'>
     <div class='quantity-heading'>${name}</div>
@@ -450,16 +450,16 @@ async function createActionPage(res, data, configuration) {
   `;
 
   for (let i = 0; i < res.length; i++) {
-    if(res[i].class){
+    if (res[i].class) {
       template += await addSelectiveFields(res[i].class);
     }
-    else{
+    else {
       template += `<div class="form-group">`;
-      if(i=== 0 || res[i].range === DATA_TYPES.dateTime){
+      if (i === 0 || res[i].range === DATA_TYPES.dateTime) {
         template += `<label for="exampleInputEmail1">${res[i].label}</label>`
       }
       template += `<input class="form-control" name="${res[i].label}" type="${res[i].range}" onKeyup="checkform()" placeholder='Enter Your ${res[i].label}' required />`;
-      if(i===0){
+      if (i === 0) {
         template += `<small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small>`;
       }
       template += `</div>`
@@ -545,28 +545,28 @@ async function createActionPage(res, data, configuration) {
 async function createPages(data) {
 
   const configurationsClass = "Configuration";
-  let configurations = await fetchIndividualsByOntologyClassName(configurationsClass).then((response)=>{
+  let configurations = await fetchIndividualsByOntologyClassName(configurationsClass).then((response) => {
     return response;
   });
 
   let configurationData = {};
-  for(let i=0; i<configurations.length; i++){
+  for (let i = 0; i < configurations.length; i++) {
     const values = configurations[i].split(":");
     configurationData[values[0]] = values[1];
   }
 
-  for (let i=0; i <data.length; i++) {
-    const { route, routeType, className} = data[i];
+  for (let i = 0; i < data.length; i++) {
+    const { route, routeType, className } = data[i];
     fetchDataPropertiesByOntologyClassName(
       capitalizeFirstLetter(className)
     ).then((response) => {
-      if(routeType === LISTING)
+      if (routeType === LISTING)
         createListingPage(data[i], configurationData)
       else if (routeType === CATEGORY)
-       createCategoryPage(data[i], configurationData)
+        createCategoryPage(data[i], configurationData)
       else if (routeType === ORDER)
         createOrderPage(data[i], configurationData)
-      else 
+      else
         createActionPage(response, data[i], configurationData)
 
       console.log(
@@ -576,13 +576,13 @@ async function createPages(data) {
   }
 }
 
-function createMenuHeaderItems(data){
+function createMenuHeaderItems(data) {
   const writeStream = fs.createWriteStream(
     `views/partials/menu-header-partials.ejs`
   );
 
   let template = "";
-  for(let i=0; i<data.length; i++){
+  for (let i = 0; i < data.length; i++) {
     template += `
       <a class="header-link" href="${data[i].link}">
         <span class="material-symbols-outlined head-icon">
@@ -611,11 +611,11 @@ async function addSelectiveFields(name) {
   template += `<option disabled selected>Select ${name}</option>`
 
   await fetchIndividualsByOntologyClassName(name)
-  .then((response) => {
-    for (let i = 0; i < response.length; i++) {
-      template += `<option>${response[i]}</option>`;
-    }
-  });
+    .then((response) => {
+      for (let i = 0; i < response.length; i++) {
+        template += `<option>${response[i]}</option>`;
+      }
+    });
 
   template += "</select><br/>";
 
@@ -635,10 +635,39 @@ fetchClasses().then((res) => {
     parser.parseString(data, (err, result) => {
       const { definitions } = result;
       const { process } = definitions;
-      const { task, serviceTask, userTask, textAnnotation, association, sequenceFlow, dataStoreReference } = process[0];
+      const { task, serviceTask, userTask, startEvent, endEvent, textAnnotation, association, sequenceFlow, dataStoreReference } = process[0];
+
+      /* Refine Sequence Flow */
+      let sequenceFlowTasks = [];
+      let start = [startEvent[0].outgoing[0]];
+      let pool = [...task, ...endEvent];
+
+      while (start !== null) {
+        for (let i=0; i <pool.length; i++) {
+          const data = pool[i];
+          for (let j=0; j < data.incoming.length; j++) {
+            for (let k=0; k < start.length; k++) {
+              if (data.incoming[j] === start[k]) {
+                sequenceFlowTasks.push({
+                  ...data
+                });
+
+                if (data.outgoing && data.outgoing.length)
+                  start = data.outgoing;
+                else
+                  start = null;
+                
+                break;
+              }
+            }
+          }
+        }
+      }
+      sequenceFlowTasks.splice(sequenceFlowTasks.length-1, 1);
+
 
       /* Refine Tasks */
-      const refinedTasks = refineTasks(task);
+      const refinedTasks = refineTasks(sequenceFlowTasks);
       const refinedServiceTasks = refineServiceTasks(serviceTask);
       const refinedUserTasks = refineUserTasks(userTask);
       const refinedTextAnnotations = refineTextAnnotations(textAnnotation);
@@ -661,20 +690,20 @@ fetchClasses().then((res) => {
         id: item.id,
         name: item.name,
         outgoing: item.outgoing,
-        dataInputAssociation: item.dataInputAssociation?.map((item) => ({ 
-          id: item.$.id, 
-          source: item.sourceRef, 
+        dataInputAssociation: item.dataInputAssociation?.map((item) => ({
+          id: item.$.id,
+          source: item.sourceRef,
         })),
-        dataOutputAssociation: item.dataOutputAssociation?.map((item) => ({ 
-          id: item.$.id, 
-          target: item.targetRef, 
+        dataOutputAssociation: item.dataOutputAssociation?.map((item) => ({
+          id: item.$.id,
+          target: item.targetRef,
         })),
         text: item.text.split(" ")[0]
       }));
 
       /* Add Data Store Input Type */
       for (let i = 0; i < annotatedTasks.length; i++) {
-        if(annotatedTasks[i].dataInputAssociation){
+        if (annotatedTasks[i].dataInputAssociation) {
           for (let j = 0; j < annotatedTasks[i].dataInputAssociation.length; j++) {
             const id = annotatedTasks[i].dataInputAssociation[j].source;
             annotatedTasks[i].dataInputAssociation[j].type = dataStore[id]?.name;
@@ -684,17 +713,17 @@ fetchClasses().then((res) => {
       }
 
       for (let i = 0; i < annotatedTasks.length; i++) {
-        if(annotatedTasks[i].dataInputAssociation){
+        if (annotatedTasks[i].dataInputAssociation) {
           annotatedTasks[i].dataInputAssociation = annotatedTasks[i].dataInputAssociation[0]
         }
-        else{
+        else {
           delete annotatedTasks[i].dataInputAssociation;
         }
       }
 
-       /* Add Data Store Output Type */
-       for (let i = 0; i < annotatedTasks.length; i++) {
-        if(annotatedTasks[i].dataOutputAssociation){
+      /* Add Data Store Output Type */
+      for (let i = 0; i < annotatedTasks.length; i++) {
+        if (annotatedTasks[i].dataOutputAssociation) {
           for (let j = 0; j < annotatedTasks[i].dataOutputAssociation.length; j++) {
             const id = annotatedTasks[i].dataOutputAssociation[j].target[0];
             annotatedTasks[i].dataOutputAssociation[j].type = dataStore[id]?.name;
@@ -704,10 +733,10 @@ fetchClasses().then((res) => {
       }
 
       for (let i = 0; i < annotatedTasks.length; i++) {
-        if(annotatedTasks[i].dataOutputAssociation){
+        if (annotatedTasks[i].dataOutputAssociation) {
           annotatedTasks[i].dataOutputAssociation = annotatedTasks[i].dataOutputAssociation[0]
         }
-        else{
+        else {
           delete annotatedTasks[i].dataOutputAssociation;
         }
       }
@@ -738,7 +767,7 @@ fetchClasses().then((res) => {
           name: refinedServiceTasks[i].name
         }
       }
-      
+
 
       for (let i = 0; i < annotatedTasks.length; i++) {
         for (let j = 0; j < annotatedTasks[i].outgoing.length; j++) {
@@ -769,7 +798,7 @@ fetchClasses().then((res) => {
 
       for (let i = 0; i < results.length; i++) {
         for (let j = 0; j < results[i].outgoing.length; j++) {
-          const flowElement = results[i].outgoing[j];   
+          const flowElement = results[i].outgoing[j];
           if (menuItems[flowElement]) {
             results[i].menuItem = {
               ...menuItems[flowElement],
@@ -781,9 +810,9 @@ fetchClasses().then((res) => {
       menuItems = results.map((item) => (item.menuItem)).filter((item) => item);
       console.log(chalk.bgGreen("Parsing BPMN File Complete "));
 
-      
+
       /* Remove unwanted fields */
-      for(let i=0; i<results.length; i++){
+      for (let i = 0; i < results.length; i++) {
         delete results[i].id;
         delete results[i].outgoing;
       }
