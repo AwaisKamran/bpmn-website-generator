@@ -23,3 +23,8 @@ a:hover {
     margin-left: 8px;
     cursor: pointer;
 }
+
+.header-icon{
+    position: relative;
+    top: 5px;
+}
