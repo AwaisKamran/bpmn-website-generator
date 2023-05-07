@@ -4,7 +4,7 @@ const { DATA_TYPES } = require("./constants");
 
 let ONTOLOGY_CLASSES = [];
 
-const ONTOLOGY_ENDPOINT = process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT;
+const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; //process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT;
 
 const axiosConfig = {
   headers: {

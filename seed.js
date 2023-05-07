@@ -9,8 +9,8 @@ const {
 const xml2js = require("xml2js");
 const chalk = require("chalk");
 const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, ORDER, TASK } = require("./utility/constants");
-const ONTOLOGY_ENDPOINT = process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
-const PATH_TO_BPMN_FILE = process.env.PHARMACY; //process.env.ECOMMERCE; // process.env.PHARMACY;
+const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
+const PATH_TO_BPMN_FILE = process.env.ECOMMERCE; //process.env.ECOMMERCE; // process.env.PHARMACY;
 require("dotenv").config();
 
 console.log(
@@ -147,7 +147,7 @@ function createRouteFiles(data) {
   );
 }
 
-function createListingPage(data, configuration) {
+function createListingPage(data, configuration, index) {
   const { routeType, route, link } = data;
 
   const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
@@ -175,6 +175,7 @@ function createListingPage(data, configuration) {
           ontologyKeys = ontologyKeys.split(",");
           ontologyValues = ontologyValues.split(",");
 
+          let index = ${index};
           let taskName = '${data.name}';
           let taskNameObject = '${data.name.split(" ")[1]}'
           let dataInputSource = '${data?.dataInputAssociation?.type}';
@@ -561,7 +562,7 @@ async function createPages(data) {
       capitalizeFirstLetter(className)
     ).then((response) => {
       if (routeType === LISTING)
-        createListingPage(data[i], configurationData)
+        createListingPage(data[i], configurationData, i)
       else if (routeType === CATEGORY)
         createCategoryPage(data[i], configurationData)
       else if (routeType === ORDER)

@@ -14,9 +14,12 @@
         let quantifiedData = _.groupBy(data, item => item.name);
         data = _.uniqBy(data, 'name');
 
-        template = `<button class='button-back' onclick='history.back()'>
-        <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
-        </button>`;
+        if(index > 0){
+            template = `<button class='button-back' onclick='history.back()'>
+                <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
+            </button>`;
+        }
+
         template += `
             <div class='flex-container product-data-container'>
             <div class='quantity-heading'>${taskName}</div>
@@ -101,8 +104,6 @@
                     price: bindings[i]?.price?.value
                 });
             }
-
-            console.log(data);
             return data;
         })
         .catch(function (error) {
@@ -114,9 +115,11 @@
     function fetchIndividuals(id){
         let template = "";
 
-        template = `<button class='button-back' onclick='history.back()'>
-        <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
-        </button>`;
+        if(index > 0){
+            template = `<button class='button-back' onclick='history.back()'>
+            <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
+            </button>`;
+        }
         
         const data = fetchIndividualsPropertiesByOntologyClassName(capitalizeFirstLetter(id)).then((response) => {
             template += "<div class='flex-container'>";
@@ -152,7 +155,6 @@
             fetchData();
         }
         else{
-            console.log(`${taskNameObject}`)
             fetchIndividuals(`${taskNameObject}`);
         }       
     }
