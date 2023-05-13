@@ -129,14 +129,15 @@ function fetchDataPropertiesByOntologyClassName(ontologyName) {
       PREFIX owl: <http://www.w3.org/2002/07/owl#> 
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
       
-      SELECT DISTINCT ?class ?label ?range ?value ?sequence
+      SELECT DISTINCT ?class ?label ?range ?value ?sequence ?comment
       WHERE { 
         ?class rdfs:domain <${ONTOLOGY_CLASSES[ontologyName]}> . 
         ?class rdf:type owl:DatatypeProperty. 
         OPTIONAL { ?class rdfs:label ?label} 
         OPTIONAL { ?class rdfs:range ?range}  
         OPTIONAL { ?class rdfs:isDefinedBy ?value} 
-        OPTIONAL { ?class rdfs:seeAlso ?sequence}  
+        OPTIONAL { ?class rdfs:seeAlso ?sequence}
+        OPTIONAL { ?class rdfs:comment ?comment}  
       } 
         
       LIMIT 25`,
@@ -154,7 +155,9 @@ function fetchDataPropertiesByOntologyClassName(ontologyName) {
           label: bindings[i].label?.value,
           range: DATA_TYPES[bindings[i].range?.value.split('#')[1]],
           class: bindings[i].value?.value,
-          sequence: bindings[i].sequence?.value
+          sequence: bindings[i].sequence?.value,
+          sensitivity: bindings[i].comment?.value.split("-")[1] === "high"? true: false,
+          sensitivityLevel: bindings[i].comment?.value.split("-")[1]
         });
       }
       

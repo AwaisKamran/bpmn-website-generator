@@ -11,6 +11,8 @@ const POST = "post";
 const PRODUCT = "product"
 const START_EVENT = "start-event"
 const TASK = "task"
+const TABLE = "table"
+const PASSWORD = "password"
 
 const DATA_TYPES =  {
   "string": "text",
@@ -30,12 +32,15 @@ module.exports = {
   ORDER,
   PRODUCT,
   START_EVENT,
-  TASK
+  TASK,
+  TABLE,
+  PASSWORD
 };
 
 // Copy .env file
 // BASE = 8000
 // ECOMMERCE = "./fixtures/e-commerce/diagram-1.bpmn"
+// ECOMMERCE-2 = "./fixtures/e-commerce/diagram-2.bpmn"
 // ECOMMERCE_ONTOLOGY_ENDPOINT = "http://localhost:3030/e-commerce/sparql"
 
 // PHARMACY = "./fixtures/pharmacy/diagram-1.bpmn"

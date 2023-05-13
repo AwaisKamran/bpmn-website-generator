@@ -8,9 +8,9 @@ const {
 } = require("./utility/sparql");
 const xml2js = require("xml2js");
 const chalk = require("chalk");
-const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, ORDER, TASK } = require("./utility/constants");
+const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, TASK, ORDER, PASSWORD } = require("./utility/constants");
 const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
-const PATH_TO_BPMN_FILE = process.env.ECOMMERCE; //process.env.ECOMMERCE; // process.env.PHARMACY;
+const PATH_TO_BPMN_FILE = process.env.ECOMMERCE; //process.env.ECOMMERCE; //process.env.ECOMMERCE-2; // process.env.PHARMACY;
 require("dotenv").config();
 
 console.log(
@@ -309,9 +309,10 @@ function createOrderPage(data, configuration) {
           let userTaskEvent = '${userTaskEvent}';
           let link = '${link}';
 
-          function ${userTaskEvent}(){
-            localStorage.clear();
-            fetchData();
+          function ${userTaskEvent}(flag){
+            if(flag){
+              fetchData(flag);
+            }
 
             SnackBar({
               message: 'User Action Executed - ${data.userTask.name}',
@@ -436,6 +437,75 @@ function createCategoryPage(data, configuration) {
   });
 }
 
+function createTablePage(data, configuration){
+  const { className, route, link } = data;
+  fetchSubClassesByOntologyClassName(className).then((response) => {
+    let template = "<div class='flex-container'>";
+    template += "<table>"
+
+    for (let i = 0; i < response.length; i++) {
+      template += `<tr>`;
+      template += `</tr>`;
+    }
+    template += "</table>"
+
+    const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
+
+    const page = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <%- include('../partials/head'); %>
+          <script>
+            let style = '${configuration.style}';
+            let title = '${configuration.title}';
+            document.title = title;
+            document.getElementById("anchor-heading").innerHTML = title;
+          </script>
+
+          <script>
+            var images = [];
+            function preload() {
+                for (var i = 0; i < arguments.length; i++) {
+                    images[i] = new Image();
+                    images[i].src = preload.arguments[i];
+                }
+            }
+            
+            preload(
+                "hhttps://media-cldnry.s-nbcnews.com/image/upload/newscms/2023_12/3599096/230320-toothpaste-kb-2x1.jpg",
+                "https://hips.hearstapps.com/hmg-prod/images/gettyimages-904676768-1654020745.png",
+                "https://roadmap-tech.com/wp-content/uploads/2013/12/AdobeStock_170805293.jpeg"
+            )
+          </script>
+        </head>
+
+        <body>
+          <header>
+            <%- include('../partials/header'); %>
+            <script>
+              document.getElementById("anchor-heading").innerHTML = title;
+            </script>
+          </header>
+          <main>
+
+          <div class="jumbotron">
+              ${template}
+            </div>
+          </main>
+          <footer>
+            <%- include('../partials/footer'); %>
+          </footer>
+        </body>
+      </html>
+    `;
+
+    writeStream.write(page);
+    writeStream.end();
+    console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
+  });
+}
+
 async function createActionPage(res, data, configuration) {
   res = orderBy(res, ['sequence'], ['asc']);
   const { name, className, dataOutputAssociation, link, route, routeType, userTask } = data;
@@ -459,7 +529,7 @@ async function createActionPage(res, data, configuration) {
       if (i === 0 || res[i].range === DATA_TYPES.dateTime) {
         template += `<label for="exampleInputEmail1">${res[i].label}</label>`
       }
-      template += `<input class="form-control" name="${res[i].label}" type="${res[i].range}" onKeyup="checkform()" placeholder='Enter Your ${res[i].label}' required />`;
+      template += `<input class="form-control" name="${res[i].label}" type="${res[i].sensitivity? PASSWORD: res[i].range}" onKeyup="checkform()" placeholder='Enter Your ${res[i].label}' required />`;
       if (i === 0) {
         template += `<small id="emailHelp" class="form-text text-muted">We'll never share your information with anyone else.</small>`;
       }
@@ -567,6 +637,8 @@ async function createPages(data) {
         createCategoryPage(data[i], configurationData)
       else if (routeType === ORDER)
         createOrderPage(data[i], configurationData)
+      else if (routeType === ORDER)
+        createTablePage(data[i], configurationData)
       else
         createActionPage(response, data[i], configurationData)
 
