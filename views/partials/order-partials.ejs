@@ -65,7 +65,7 @@
                         template += '</div>'; 
                     
                     }
-                    else{
+                    else if(heading !== "order"){
                         template += `<div class='flex-container product-data-container'>
                             <div class='quantity-heading'>View ${capitalizeFirstLetter(heading)}</div>`;
 
@@ -97,12 +97,8 @@
             }
         }
         else{
-            localStorage.setItem("order", JSON.stringify(enteries));
-            for(let i=0; i<enteries.length; i++){
-                let data = enteries[i];
-                let heading = data[0];
-                localStorage.removeItem(heading);
-            }
+            localStorage.setItem(capitalizeFirstLetter(taskNameObject), JSON.stringify(enteries));
+            localStorage.removeItem("cart");
 
             template += `<div class='flex-container product-data-container'>
                 <div class='quantity-heading'>${taskName}</div><br/>

@@ -1,0 +1,95 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <%- include('../partials/head'); %>
+        <script>
+          let style = 'warning';
+          let title = 'E-commerce Ontology Platform';
+          document.title = title;
+          if(document.getElementById("anchor-heading")){
+            document.getElementById("anchor-heading").innerHTML = title;
+          }
+        </script>
+        <style>
+          table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+          }
+
+          td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+          }
+
+          tr:nth-child(even) {
+            background-color: #dddddd;
+          }
+        </style>
+      </head>
+
+      <body>
+        <header>
+          <%- include('../partials/header'); %>
+          <script>
+            document.getElementById("anchor-heading").innerHTML = title;
+          </script>
+        </header>
+        <main>
+
+        <div class="jumbotron" id="tableData">
+        </div>
+
+        <script>
+          let tableData = [];
+          let tableDataKeys = [];
+
+          const orderData = JSON.parse(localStorage.getItem('Order'));
+          for(let i=0; i<orderData.length; i++){
+            tableDataKeys.push(orderData[i][0])
+            tableData.push({
+              ...JSON.parse(orderData[i][1])
+            })
+          }
+
+          let tableHeaderData = "";
+          for(let i=0; i<tableDataKeys.length; i++){
+            if(tableDataKeys[i] !== "cart"){
+              tableHeaderData += "<th>";
+              tableHeaderData += tableDataKeys[i];
+              tableHeaderData += "</th>";
+            }
+          }
+
+          let template = "<table>";
+          template += tableHeaderData;
+          template += "<tr>";
+
+          for(let i=0; i<tableData.length; i++){
+            if(tableDataKeys[i] !== "cart"){
+              const keys = Object.keys(tableData[i]);
+              const values = Object.values(tableData[i]);
+
+              let rowData = "";
+              rowData += "<td>";
+              for(let j=0; j<keys.length; j++){
+                rowData += "" + keys[j] + " - " + values[j] + "<br/>";
+              }
+              rowData += "</td>";
+              template += rowData;
+            }
+          }
+          template += "</tr>"
+          template += "</table>"
+          document.getElementById("tableData").innerHTML = template;
+        </script>
+
+        </main>
+        <footer>
+          <%- include('../partials/footer'); %>
+        </footer>
+      </body>
+    </html>
+  

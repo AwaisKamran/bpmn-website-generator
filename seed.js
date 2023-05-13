@@ -8,9 +8,9 @@ const {
 } = require("./utility/sparql");
 const xml2js = require("xml2js");
 const chalk = require("chalk");
-const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, TASK, ORDER, PASSWORD } = require("./utility/constants");
+const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, TASK, ORDER, PASSWORD, TABLE } = require("./utility/constants");
 const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
-const PATH_TO_BPMN_FILE = process.env.ECOMMERCE; //process.env.ECOMMERCE; //process.env.ECOMMERCE-2; // process.env.PHARMACY;
+const PATH_TO_BPMN_FILE = process.env.ECOMMERCE2; //process.env.ECOMMERCE; //process.env.ECOMMERCE2; // process.env.PHARMACY;
 require("dotenv").config();
 
 console.log(
@@ -32,12 +32,17 @@ function refineTasks(tasks) {
 }
 
 function refineServiceTasks(tasks) {
-  const refinedTasks = tasks.map((item) => ({
-    id: item.$.id,
-    name: item.$.name,
-    incoming: item.incoming
-  }));
-  return refinedTasks;
+  if(tasks && tasks.length){
+    const refinedTasks = tasks.map((item) => ({
+      id: item.$.id,
+      name: item.$.name,
+      incoming: item.incoming
+    }));
+    return refinedTasks;
+  }
+  else {
+    return [];
+  }
 }
 
 function refineUserTasks(tasks) {
@@ -289,7 +294,7 @@ function createOrderPage(data, configuration) {
           let title = '${configuration.title}';
           document.title = title;
           document.getElementById("anchor-heading").innerHTML = title;
-      </script>
+        </script>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         
@@ -439,80 +444,119 @@ function createCategoryPage(data, configuration) {
 
 function createTablePage(data, configuration){
   const { className, route, link } = data;
-  fetchSubClassesByOntologyClassName(className).then((response) => {
-    let template = "<div class='flex-container'>";
-    template += "<table>"
+  const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
 
-    for (let i = 0; i < response.length; i++) {
-      template += `<tr>`;
-      template += `</tr>`;
-    }
-    template += "</table>"
+  const page = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <%- include('../partials/head'); %>
+        <script>
+          let style = '${configuration.style}';
+          let title = '${configuration.title}';
+          document.title = title;
+          if(document.getElementById("anchor-heading")){
+            document.getElementById("anchor-heading").innerHTML = title;
+          }
+        </script>
+        <style>
+          table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+          }
 
-    const writeStream = fs.createWriteStream(`views/pages/${route}.ejs`);
+          td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+          }
 
-    const page = `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <%- include('../partials/head'); %>
+          tr:nth-child(even) {
+            background-color: #dddddd;
+          }
+        </style>
+      </head>
+
+      <body>
+        <header>
+          <%- include('../partials/header'); %>
           <script>
-            let style = '${configuration.style}';
-            let title = '${configuration.title}';
-            document.title = title;
             document.getElementById("anchor-heading").innerHTML = title;
           </script>
+        </header>
+        <main>
 
-          <script>
-            var images = [];
-            function preload() {
-                for (var i = 0; i < arguments.length; i++) {
-                    images[i] = new Image();
-                    images[i].src = preload.arguments[i];
-                }
+        <div class="jumbotron" id="tableData">
+        </div>
+
+        <script>
+          let tableData = [];
+          let tableDataKeys = [];
+
+          const orderData = JSON.parse(localStorage.getItem('${className}'));
+          for(let i=0; i<orderData.length; i++){
+            tableDataKeys.push(orderData[i][0])
+            tableData.push({
+              ...JSON.parse(orderData[i][1])
+            })
+          }
+
+          let tableHeaderData = "";
+          for(let i=0; i<tableDataKeys.length; i++){
+            if(tableDataKeys[i] !== "cart"){
+              tableHeaderData += "<th>";
+              tableHeaderData += tableDataKeys[i];
+              tableHeaderData += "</th>";
             }
-            
-            preload(
-                "hhttps://media-cldnry.s-nbcnews.com/image/upload/newscms/2023_12/3599096/230320-toothpaste-kb-2x1.jpg",
-                "https://hips.hearstapps.com/hmg-prod/images/gettyimages-904676768-1654020745.png",
-                "https://roadmap-tech.com/wp-content/uploads/2013/12/AdobeStock_170805293.jpeg"
-            )
-          </script>
-        </head>
+          }
 
-        <body>
-          <header>
-            <%- include('../partials/header'); %>
-            <script>
-              document.getElementById("anchor-heading").innerHTML = title;
-            </script>
-          </header>
-          <main>
+          let template = "<table>";
+          template += tableHeaderData;
+          template += "<tr>";
 
-          <div class="jumbotron">
-              ${template}
-            </div>
-          </main>
-          <footer>
-            <%- include('../partials/footer'); %>
-          </footer>
-        </body>
-      </html>
-    `;
+          for(let i=0; i<tableData.length; i++){
+            if(tableDataKeys[i] !== "cart"){
+              const keys = Object.keys(tableData[i]);
+              const values = Object.values(tableData[i]);
 
-    writeStream.write(page);
-    writeStream.end();
-    console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
-  });
+              let rowData = "";
+              rowData += "<td>";
+              for(let j=0; j<keys.length; j++){
+                rowData += "" + keys[j] + " - " + values[j] + "<br/>";
+              }
+              rowData += "</td>";
+              template += rowData;
+            }
+          }
+          template += "</tr>"
+          template += "</table>"
+          document.getElementById("tableData").innerHTML = template;
+        </script>
+
+        </main>
+        <footer>
+          <%- include('../partials/footer'); %>
+        </footer>
+      </body>
+    </html>
+  `;
+
+  writeStream.write(page);
+  writeStream.end();
+  console.log(chalk.bgYellow(`Page - ${route} Generation Complete`));
 }
 
-async function createActionPage(res, data, configuration) {
+async function createActionPage(res, data, configuration, index) {
   res = orderBy(res, ['sequence'], ['asc']);
   const { name, className, dataOutputAssociation, link, route, routeType, userTask } = data;
 
-  let template = `<button class='button-back' onclick='history.back()'>
-  <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
-  </button>`;
+  let template = "";
+  if(index !== 0){
+    template = `<button class='button-back' onclick='history.back()'>
+    <span class="material-symbols-outlined back-icon">arrow_back</span> Go Back
+    </button>`;
+  }
 
   template += `
     <div class='main-container'>
@@ -563,7 +607,7 @@ async function createActionPage(res, data, configuration) {
       <script>
         let routeType = '${routeType}';
         let userTask = '${userTask.name}';
-        let dataOutputAssociation = '${dataOutputAssociation.type}'
+        let dataOutputAssociation = '${dataOutputAssociation?.type}'
 
         function ${route}(event){
           const form = document.querySelector('form');
@@ -637,10 +681,10 @@ async function createPages(data) {
         createCategoryPage(data[i], configurationData)
       else if (routeType === ORDER)
         createOrderPage(data[i], configurationData)
-      else if (routeType === ORDER)
+      else if (routeType === TABLE)
         createTablePage(data[i], configurationData)
       else
-        createActionPage(response, data[i], configurationData)
+        createActionPage(response, data[i], configurationData, i)
 
       console.log(
         chalk.bgYellow(`Page - ${route} Generation Complete`)
@@ -738,7 +782,6 @@ fetchClasses().then((res) => {
       }
       sequenceFlowTasks.splice(sequenceFlowTasks.length-1, 1);
 
-
       /* Refine Tasks */
       const refinedTasks = refineTasks(sequenceFlowTasks);
       const refinedServiceTasks = refineServiceTasks(serviceTask);
@@ -759,6 +802,7 @@ fetchClasses().then((res) => {
 
       /* Merge Annotation with tasks */
       const updatedTextAnnotations = values(merge(keyBy(refinedTextAnnotations, 'id'), keyBy(refinedAssociations, 'id'))).map((item) => ({ source: item.source, text: item.text }));
+
       let annotatedTasks = values(merge(keyBy(refinedTasks, 'id'), keyBy(updatedTextAnnotations, 'source'))).map((item) => ({
         id: item.id,
         name: item.name,
