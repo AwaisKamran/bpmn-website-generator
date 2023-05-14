@@ -299,6 +299,7 @@ function createOrderPage(data, configuration) {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
         
         <script>
+          localStorage.removeItem("Credential");
           const ONTOLOGY_ENDPOINT = '${ONTOLOGY_ENDPOINT}';
           let ontologyKeys = '${ontologyKeys.join(",")}';
           let ontologyValues = '${ontologyValues.join(",")}';
@@ -472,8 +473,8 @@ function createTablePage(data, configuration){
             padding: 8px;
           }
 
-          tr:nth-child(even) {
-            background-color: #dddddd;
+          tr {
+            background-color: white;
           }
         </style>
       </head>
@@ -491,6 +492,22 @@ function createTablePage(data, configuration){
         </div>
 
         <script>
+          function navigate(){
+            const enteries = JSON.parse(localStorage.getItem("Order"));
+            for(let i=0; i<enteries.length; i++){
+              const data = enteries[i];
+              for(let j=0; j<data.length; j++){
+                const heading = enteries[i][0];
+                const detail = JSON.parse(enteries[i][1])
+                if(heading === "cart"){
+                  console.log(detail);
+                  localStorage.setItem("cart", JSON.stringify(detail));
+                }
+              }
+            }
+            window.location.href = '${link}';
+          }
+
           let tableData = [];
           let tableDataKeys = [];
 
@@ -510,6 +527,7 @@ function createTablePage(data, configuration){
               tableHeaderData += "</th>";
             }
           }
+          tableHeaderData += "<th></th>"
 
           let template = "<table>";
           template += tableHeaderData;
@@ -528,7 +546,9 @@ function createTablePage(data, configuration){
               rowData += "</td>";
               template += rowData;
             }
+
           }
+          template += "<td><input onClick='navigate()' type='button' value='View' /></td>"
           template += "</tr>"
           template += "</table>"
           document.getElementById("tableData").innerHTML = template;

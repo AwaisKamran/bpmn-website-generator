@@ -24,8 +24,8 @@
             padding: 8px;
           }
 
-          tr:nth-child(even) {
-            background-color: #dddddd;
+          tr {
+            background-color: white;
           }
         </style>
       </head>
@@ -43,6 +43,22 @@
         </div>
 
         <script>
+          function navigate(){
+            const enteries = JSON.parse(localStorage.getItem("Order"));
+            for(let i=0; i<enteries.length; i++){
+              const data = enteries[i];
+              for(let j=0; j<data.length; j++){
+                const heading = enteries[i][0];
+                const detail = JSON.parse(enteries[i][1])
+                if(heading === "cart"){
+                  console.log(detail);
+                  localStorage.setItem("cart", JSON.stringify(detail));
+                }
+              }
+            }
+            window.location.href = 'http://localhost:8000/reviewOrder';
+          }
+
           let tableData = [];
           let tableDataKeys = [];
 
@@ -62,6 +78,7 @@
               tableHeaderData += "</th>";
             }
           }
+          tableHeaderData += "<th></th>"
 
           let template = "<table>";
           template += tableHeaderData;
@@ -80,7 +97,9 @@
               rowData += "</td>";
               template += rowData;
             }
+
           }
+          template += "<td><input onClick='navigate()' type='button' value='View' /></td>"
           template += "</tr>"
           template += "</table>"
           document.getElementById("tableData").innerHTML = template;

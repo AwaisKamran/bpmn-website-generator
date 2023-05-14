@@ -65,7 +65,7 @@
                         template += '</div>'; 
                     
                     }
-                    else if(heading !== "order"){
+                    else if(heading !== "Order"){
                         template += `<div class='flex-container product-data-container'>
                             <div class='quantity-heading'>View ${capitalizeFirstLetter(heading)}</div>`;
 
@@ -97,8 +97,14 @@
             }
         }
         else{
-            localStorage.setItem(capitalizeFirstLetter(taskNameObject), JSON.stringify(enteries));
-            localStorage.removeItem("cart");
+            const taskNameObjectExist = localStorage.getItem(capitalizeFirstLetter(taskNameObject));
+            if(!taskNameObjectExist){
+                localStorage.setItem(capitalizeFirstLetter(taskNameObject), JSON.stringify(enteries));
+                localStorage.removeItem("cart");
+            }
+            else{
+                localStorage.removeItem(capitalizeFirstLetter(taskNameObject)); 
+            }
 
             template += `<div class='flex-container product-data-container'>
                 <div class='quantity-heading'>${taskName}</div><br/>
