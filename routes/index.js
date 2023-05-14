@@ -11,15 +11,23 @@
     app.use(cors(corsOptions)) 
   
         router.get('/', function(req, res) {
-          res.render('pages/enterCredential');
+          res.render('pages/viewProduct');
         });
       
-      router.get('/enterCredential', function(req, res) {
-        res.render('pages/enterCredential');
+      router.get('/viewProduct', function(req, res) {
+        res.render('pages/viewProduct');
       });
     
-      router.get('/viewOrder', function(req, res) {
-        res.render('pages/viewOrder');
+      router.get('/viewCart', function(req, res) {
+        res.render('pages/viewCart');
+      });
+    
+      router.get('/enterPerson', function(req, res) {
+        res.render('pages/enterPerson');
+      });
+    
+      router.get('/enterAddress', function(req, res) {
+        res.render('pages/enterAddress');
       });
     
       router.get('/reviewOrder', function(req, res) {

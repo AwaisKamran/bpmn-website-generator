@@ -9,8 +9,8 @@ const {
 const xml2js = require("xml2js");
 const chalk = require("chalk");
 const { LISTING, CATEGORY, GET, POST, ACTION, BASE_LINK, LOCAL, DATA_TYPES, TASK, ORDER, PASSWORD, TABLE } = require("./utility/constants");
-const ONTOLOGY_ENDPOINT = process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
-const PATH_TO_BPMN_FILE = process.env.ECOMMERCE2; //process.env.ECOMMERCE; //process.env.ECOMMERCE2; // process.env.PHARMACY;
+const ONTOLOGY_ENDPOINT = process.env.PHARMACY_ONTOLOGY_ENDPOINT; //process.env.ECOMMERCE_ONTOLOGY_ENDPOINT; // process.env.PHARMACY_ONTOLOGY_ENDPOINT;
+const PATH_TO_BPMN_FILE = process.env.PHARMACY; //process.env.ECOMMERCE; //process.env.ECOMMERCE2; // process.env.PHARMACY;
 require("dotenv").config();
 
 console.log(
